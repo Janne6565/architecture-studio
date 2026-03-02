@@ -14,8 +14,8 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
       }`}
       style={{ borderLeftWidth: '4px', borderLeftColor: `hsl(var(${colorVar}))` }}
     >
-      <Handle type="target" position={Position.Top} className="!-top-1" />
-      <Handle type="target" position={Position.Left} className="!-left-1" />
+      <Handle type="target" position={Position.Top} id="top" className="!-top-1" />
+      <Handle type="target" position={Position.Left} id="left" className="!-left-1" />
 
       <div className="px-3 py-2.5">
         <div className="flex items-center gap-2 mb-1">
@@ -36,8 +36,8 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
         )}
       </div>
 
-      <Handle type="source" position={Position.Bottom} className="!-bottom-1" />
-      <Handle type="source" position={Position.Right} className="!-right-1" />
+      <Handle type="source" position={Position.Bottom} id="bottom" className="!-bottom-1" />
+      <Handle type="source" position={Position.Right} id="right" className="!-right-1" />
     </div>
   );
 }

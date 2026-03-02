@@ -50,6 +50,18 @@ function ChartEditorInner() {
     undo, redo, canUndo, canRedo, reset: resetHistory,
   } = useUndoRedo({ nodes: chart?.nodes || [], edges: chart?.edges || [] });
 
+  const undoRedoRef = useRef(false);
+
+  const handleUndo = useCallback(() => {
+    undoRedoRef.current = true;
+    undo();
+  }, [undo]);
+
+  const handleRedo = useCallback(() => {
+    undoRedoRef.current = true;
+    redo();
+  }, [redo]);
+
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
 
@@ -76,8 +88,8 @@ function ChartEditorInner() {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
         e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
+        if (e.shiftKey) handleRedo();
+        else handleUndo();
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
@@ -101,10 +113,12 @@ function ChartEditorInner() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [undo, redo, selectedNodeId, selectedEdgeId, setNodes, setEdges, pushHistory]);
+  }, [handleUndo, handleRedo, selectedNodeId, selectedEdgeId, setNodes, setEdges, pushHistory]);
 
-  // Sync undo/redo state
+  // Sync undo/redo state — only apply when triggered by undo/redo
   useEffect(() => {
+    if (!undoRedoRef.current) return;
+    undoRedoRef.current = false;
     setNodes(historyState.nodes);
     setEdges(historyState.edges);
   }, [historyState, setNodes, setEdges]);
@@ -142,7 +156,7 @@ function ChartEditorInner() {
     const newNode: ArchNode = {
       id: `node-${Date.now()}`,
       type: 'architecture',
-      position: { x: 200 + Math.random() * 200, y: 150 + Math.random() * 200 },
+      position: { x: 100 + Math.random() * 600, y: 100 + Math.random() * 400 },
       data: {
         label: config.label,
         description: '',
@@ -242,8 +256,8 @@ function ChartEditorInner() {
             chartName={chart.name}
             canUndo={canUndo}
             canRedo={canRedo}
-            onUndo={undo}
-            onRedo={redo}
+            onUndo={handleUndo}
+            onRedo={handleRedo}
             onClear={onClear}
             onImportJson={onImportJson}
             onExportJson={onExportJson}
