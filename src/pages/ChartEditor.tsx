@@ -42,6 +42,8 @@ function ChartEditorInner() {
 
   const [nodes, setNodes, onNodesChange] = useNodesState<ArchNode>(chart?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState<ArchEdge>(chart?.edges || []);
+  const nodesRef = useRef<ArchNode[]>(chart?.nodes || []);
+  const edgesRef = useRef<ArchEdge[]>(chart?.edges || []);
 
   const {
     state: historyState, set: pushHistory,
@@ -53,6 +55,11 @@ function ChartEditorInner() {
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
   const selectedEdge = useMemo(() => edges.find(e => e.id === selectedEdgeId) || null, [edges, selectedEdgeId]);
+
+  useEffect(() => {
+    nodesRef.current = nodes;
+    edgesRef.current = edges;
+  }, [nodes, edges]);
 
   // Auto-save
   useEffect(() => {
@@ -75,19 +82,26 @@ function ChartEditorInner() {
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
         if (selectedNodeId) {
-          setNodes(ns => ns.filter(n => n.id !== selectedNodeId));
-          setEdges(es => es.filter(e => e.source !== selectedNodeId && e.target !== selectedNodeId));
+          const nextNodes = nodesRef.current.filter(n => n.id !== selectedNodeId);
+          const nextEdges = edgesRef.current.filter(e => e.source !== selectedNodeId && e.target !== selectedNodeId);
+          setNodes(nextNodes);
+          setEdges(nextEdges);
           setSelectedNodeId(null);
+          setSelectedEdgeId(null);
+          pushHistory({ nodes: nextNodes, edges: nextEdges });
+          return;
         }
         if (selectedEdgeId) {
-          setEdges(es => es.filter(e => e.id !== selectedEdgeId));
+          const nextEdges = edgesRef.current.filter(e => e.id !== selectedEdgeId);
+          setEdges(nextEdges);
           setSelectedEdgeId(null);
+          pushHistory({ nodes: nodesRef.current, edges: nextEdges });
         }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [undo, redo, selectedNodeId, selectedEdgeId, setNodes, setEdges]);
+  }, [undo, redo, selectedNodeId, selectedEdgeId, setNodes, setEdges, pushHistory]);
 
   // Sync undo/redo state
   useEffect(() => {
@@ -95,9 +109,12 @@ function ChartEditorInner() {
     setEdges(historyState.edges);
   }, [historyState, setNodes, setEdges]);
 
-  const pushCurrentState = useCallback(() => {
-    pushHistory({ nodes, edges });
-  }, [nodes, edges, pushHistory]);
+  const pushCurrentState = useCallback((nextNodes?: ArchNode[], nextEdges?: ArchEdge[]) => {
+    pushHistory({
+      nodes: nextNodes ?? nodesRef.current,
+      edges: nextEdges ?? edgesRef.current,
+    });
+  }, [pushHistory]);
 
   const onConnect = useCallback((connection: Connection) => {
     const newEdge: ArchEdge = {
@@ -106,14 +123,18 @@ function ChartEditorInner() {
       type: 'architecture',
       data: { edgeType, description: '' },
     } as ArchEdge;
-    setEdges(es => addEdge(newEdge, es) as ArchEdge[]);
-    setTimeout(pushCurrentState, 0);
+
+    setEdges(es => {
+      const updated = addEdge(newEdge, es) as ArchEdge[];
+      setTimeout(() => pushCurrentState(undefined, updated), 0);
+      return updated;
+    });
   }, [edgeType, setEdges, pushCurrentState]);
 
   const onNodesChangeWrapped = useCallback((changes: Parameters<typeof onNodesChange>[0]) => {
     onNodesChange(changes);
     const significant = changes.some(c => c.type === 'position' && c.dragging === false);
-    if (significant) setTimeout(pushCurrentState, 0);
+    if (significant) setTimeout(() => pushCurrentState(), 0);
   }, [onNodesChange, pushCurrentState]);
 
   const onAddNode = useCallback((type: NodeType) => {
@@ -128,8 +149,12 @@ function ChartEditorInner() {
         nodeType: type,
       },
     };
-    setNodes(ns => [...ns, newNode]);
-    setTimeout(pushCurrentState, 0);
+
+    setNodes(ns => {
+      const updated = [...ns, newNode];
+      setTimeout(() => pushCurrentState(updated, undefined), 0);
+      return updated;
+    });
   }, [setNodes, pushCurrentState]);
 
   const onUpdateNode = useCallback((id: string, data: Partial<ArchNode['data']>) => {
@@ -141,16 +166,20 @@ function ChartEditorInner() {
   }, [setEdges]);
 
   const onDeleteNode = useCallback((id: string) => {
-    setNodes(ns => ns.filter(n => n.id !== id));
-    setEdges(es => es.filter(e => e.source !== id && e.target !== id));
+    const nextNodes = nodesRef.current.filter(n => n.id !== id);
+    const nextEdges = edgesRef.current.filter(e => e.source !== id && e.target !== id);
+    setNodes(nextNodes);
+    setEdges(nextEdges);
     setSelectedNodeId(null);
-    setTimeout(pushCurrentState, 0);
+    setSelectedEdgeId(null);
+    pushCurrentState(nextNodes, nextEdges);
   }, [setNodes, setEdges, pushCurrentState]);
 
   const onDeleteEdge = useCallback((id: string) => {
-    setEdges(es => es.filter(e => e.id !== id));
+    const nextEdges = edgesRef.current.filter(e => e.id !== id);
+    setEdges(nextEdges);
     setSelectedEdgeId(null);
-    setTimeout(pushCurrentState, 0);
+    pushCurrentState(undefined, nextEdges);
   }, [setEdges, pushCurrentState]);
 
   const onClear = useCallback(() => {
