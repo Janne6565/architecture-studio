@@ -308,15 +308,10 @@ function ChartEditorInner() {
             onConnect={onConnect}
             nodeTypes={nodeTypes}
             edgeTypes={edgeTypes}
-            onNodeClick={(e, node) => {
-              if (e.shiftKey) {
-                // Toggle selection on shift+click
-                setNodes(ns => ns.map(n => n.id === node.id ? { ...n, selected: !n.selected } : n));
-              } else {
-                setSelectedNodeId(node.id);
-                setSelectedEdgeId(null);
-                setNodes(ns => ns.map(n => ({ ...n, selected: n.id === node.id })));
-              }
+            multiSelectionKeyCode="Shift"
+            onNodeClick={(_, node) => {
+              setSelectedNodeId(node.id);
+              setSelectedEdgeId(null);
             }}
             onEdgeClick={(_, edge) => { setSelectedEdgeId(edge.id); setSelectedNodeId(null); }}
             onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}

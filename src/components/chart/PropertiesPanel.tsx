@@ -1,9 +1,10 @@
-import type { ArchNode, ArchEdge, EdgeDirection } from '@/types/chart';
+import type { ArchNode, ArchEdge, EdgeDirection, EdgeType } from '@/types/chart';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG } from '@/types/chart';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Trash2, X, ArrowRight, ArrowLeftRight, ArrowLeft, Ban } from 'lucide-react';
 
 interface PropertiesPanelProps {
@@ -87,8 +88,23 @@ export default function PropertiesPanel({
           </button>
         </div>
         <div className="p-3 space-y-3">
-          <div className="text-[10px] font-mono text-muted-foreground">
-            Type: {edgeConfig?.label}
+          <div>
+            <Label className="text-xs mb-1.5 block">Protocol</Label>
+            <Select
+              value={selectedEdge.data?.edgeType || 'rest'}
+              onValueChange={(value: EdgeType) => onUpdateEdge(selectedEdge.id, { edgeType: value })}
+            >
+              <SelectTrigger className="h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EDGE_TYPES_CONFIG.map(opt => (
+                  <SelectItem key={opt.type} value={opt.type} className="text-xs">
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
