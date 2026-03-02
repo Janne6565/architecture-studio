@@ -257,7 +257,7 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
                 ref={el => { buttonRefs.current[cat.key] = el; }}
                 onMouseEnter={() => handleEnter(cat.key)}
                 onMouseLeave={handleLeave}
-                className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all ${
+                className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
                   isActive
                     ? 'bg-primary text-primary-foreground shadow-sm'
                     : 'hover:bg-muted text-muted-foreground hover:text-foreground'
