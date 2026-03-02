@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG, CATEGORY_LABELS } from '@/types/chart';
 import type { NodeType, EdgeType, NodeCategory } from '@/types/chart';
 import { Input } from '@/components/ui/input';
-import { Search, Monitor, Server, Database, Globe, Cable } from 'lucide-react';
+import { Search, Monitor, Server, Database, Globe, Cable, Container, MessageSquare, Activity, Shield } from 'lucide-react';
 
 interface FloatingToolbarProps {
   onAddNode: (type: NodeType) => void;
@@ -16,6 +16,10 @@ const CATEGORIES: { key: ToolbarCategory; label: string; shortcut: string }[] = 
   { key: 'frontend', label: CATEGORY_LABELS.frontend, shortcut: 'F' },
   { key: 'backend', label: CATEGORY_LABELS.backend, shortcut: 'B' },
   { key: 'datastore', label: CATEGORY_LABELS.datastore, shortcut: 'D' },
+  { key: 'devops', label: 'DevOps', shortcut: 'I' },
+  { key: 'messaging', label: 'Messaging', shortcut: 'M' },
+  { key: 'monitoring', label: 'Monitoring', shortcut: 'O' },
+  { key: 'auth', label: 'Auth', shortcut: 'A' },
   { key: 'external', label: CATEGORY_LABELS.external, shortcut: 'E' },
   { key: 'connections', label: 'Connections', shortcut: 'C' },
 ];
@@ -24,6 +28,10 @@ const CATEGORY_ICONS: Record<ToolbarCategory, React.ReactNode> = {
   frontend: <Monitor className="h-4 w-4" />,
   backend: <Server className="h-4 w-4" />,
   datastore: <Database className="h-4 w-4" />,
+  devops: <Container className="h-4 w-4" />,
+  messaging: <MessageSquare className="h-4 w-4" />,
+  monitoring: <Activity className="h-4 w-4" />,
+  auth: <Shield className="h-4 w-4" />,
   external: <Globe className="h-4 w-4" />,
   connections: <Cable className="h-4 w-4" />,
 };
