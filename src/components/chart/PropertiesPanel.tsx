@@ -108,7 +108,7 @@ export default function PropertiesPanel({
               value={nodeData.description}
               onChange={e => onUpdateNode(selectedNode.id, { description: e.target.value })}
               placeholder="Add a description..."
-              className="text-sm mt-1 min-h-[80px] resize-y"
+              className="text-sm mt-1 min-h-[200px] resize-y"
             />
           </div>
           <div>
