@@ -11,12 +11,20 @@ const EDGE_STYLES: Record<string, string> = {
   rest: '0',
   websocket: '8 4',
   webhook: '3 3',
+  grpc: '12 3 3 3',
+  graphql: '6 6',
+  mqtt: '2 4',
+  amqp: '10 4 2 4',
 };
 
 const EDGE_LABELS: Record<string, string> = {
   rest: 'REST',
   websocket: 'WS',
   webhook: 'Webhook',
+  grpc: 'gRPC',
+  graphql: 'GraphQL',
+  mqtt: 'MQTT',
+  amqp: 'AMQP',
 };
 
 function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
