@@ -49,6 +49,7 @@ export interface EdgeData {
   edgeType: string;
   description: string;
   direction: EdgeDirection;
+  labelPosition?: number; // 0–1 ratio along edge path, default 0.5
   [key: string]: unknown;
 }
 
