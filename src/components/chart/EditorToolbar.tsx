@@ -33,9 +33,14 @@ export default function EditorToolbar({
 }: EditorToolbarProps) {
   const { fitView, getEdges } = useReactFlow();
 
-  const exportImage = async (format: 'png' | 'svg', targetWidth?: number) => {
+  const exportImage = async (format: 'png' | 'svg', targetWidth?: number, withBackground = false) => {
     const el = document.querySelector('.react-flow__viewport') as HTMLElement;
     if (!el) return;
+
+    // Resolve background color from CSS variable
+    const bgColor = withBackground
+      ? getComputedStyle(document.documentElement).getPropertyValue('--background').trim()
+      : undefined;
 
     // Hide handles that have no edge connected
     const edges = getEdges();
@@ -70,7 +75,12 @@ export default function EditorToolbar({
     try {
       const fn = format === 'png' ? toPng : toSvg;
       const pixelRatio = targetWidth ? targetWidth / el.offsetWidth : 1;
-      const url = await fn(el, { quality: 1, backgroundColor: 'transparent', pixelRatio, skipFonts: true });
+      const url = await fn(el, {
+        quality: 1,
+        backgroundColor: bgColor ? `hsl(${bgColor})` : 'transparent',
+        pixelRatio,
+        skipFonts: true,
+      });
       const a = document.createElement('a');
       a.href = url;
       a.download = `${chartName}.${format}`;
@@ -143,7 +153,12 @@ export default function EditorToolbar({
           <DropdownMenuItem onClick={() => exportImage('png', 2560)}>PNG WQHD (2560px)</DropdownMenuItem>
           <DropdownMenuItem onClick={() => exportImage('png', 3840)}>PNG 4K (3840px)</DropdownMenuItem>
           <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => exportImage('png', 1920, true)}>PNG 1080p + Background</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => exportImage('png', 2560, true)}>PNG WQHD + Background</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => exportImage('png', 3840, true)}>PNG 4K + Background</DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => exportImage('svg')}>SVG (Vector)</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => exportImage('svg', undefined, true)}>SVG + Background</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={exportJson} title="Export JSON">
