@@ -1,12 +1,188 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useChartStorage } from '@/hooks/useChartStorage';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import { Plus, Trash2, Network, Sun, Moon, ChevronRight } from 'lucide-react';
+import { toast } from 'sonner';
 
 const Index = () => {
+  const navigate = useNavigate();
+  const { charts, createChart, deleteChart } = useChartStorage();
+  const [newName, setNewName] = useState('');
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+
+  const handleCreate = () => {
+    const name = newName.trim() || 'Untitled Diagram';
+    const chart = createChart(name);
+    setNewName('');
+    setDialogOpen(false);
+    toast.success('Chart created');
+    navigate(`/chart/${chart.id}`);
+  };
+
+  const handleCreateWithExample = () => {
+    const chart = createChart('Example Architecture');
+    // Add example nodes and edges
+    const exampleNodes = [
+      {
+        id: 'node-1',
+        type: 'architecture' as const,
+        position: { x: 100, y: 100 },
+        data: { label: 'React Frontend', description: 'Main SPA built with React and TypeScript. Serves the user interface.', nodeType: 'react' as const },
+      },
+      {
+        id: 'node-2',
+        type: 'architecture' as const,
+        position: { x: 450, y: 100 },
+        data: { label: 'API Server', description: 'Spring Boot REST API. Handles business logic and authentication.', nodeType: 'spring-boot' as const },
+      },
+      {
+        id: 'node-3',
+        type: 'architecture' as const,
+        position: { x: 450, y: 320 },
+        data: { label: 'Database', description: 'PostgreSQL database for persistent storage.', nodeType: 'postgres' as const },
+      },
+    ];
+    const exampleEdges = [
+      {
+        id: 'e-1',
+        source: 'node-1',
+        target: 'node-2',
+        type: 'architecture' as const,
+        data: { edgeType: 'rest' as const, description: 'HTTP/JSON' },
+      },
+      {
+        id: 'e-2',
+        source: 'node-2',
+        target: 'node-3',
+        type: 'architecture' as const,
+        data: { edgeType: 'rest' as const, description: 'SQL queries' },
+      },
+    ];
+
+    // Need to import from hooks
+    const all = JSON.parse(localStorage.getItem('archflow-charts') || '[]');
+    const idx = all.findIndex((c: { id: string }) => c.id === chart.id);
+    if (idx !== -1) {
+      all[idx].nodes = exampleNodes;
+      all[idx].edges = exampleEdges;
+      localStorage.setItem('archflow-charts', JSON.stringify(all));
+    }
+    navigate(`/chart/${chart.id}`);
+  };
+
+  const toggleDarkMode = () => {
+    document.documentElement.classList.toggle('dark');
+    setDarkMode(d => !d);
+  };
+
+  const sortedCharts = [...charts].sort((a, b) => b.updatedAt - a.updatedAt);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      <header className="border-b bg-card">
+        <div className="container max-w-5xl flex items-center justify-between h-14 px-4">
+          <div className="flex items-center gap-2.5">
+            <Network className="h-5 w-5 text-primary" />
+            <h1 className="font-semibold text-lg font-mono tracking-tight">ArchFlow</h1>
+          </div>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleDarkMode}>
+            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
+        </div>
+      </header>
+
+      <main className="container max-w-5xl px-4 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">Your Diagrams</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Create and manage architecture diagrams
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {charts.length === 0 && (
+              <Button variant="outline" onClick={handleCreateWithExample}>
+                <Plus className="h-4 w-4 mr-1.5" /> Start with Example
+              </Button>
+            )}
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-1.5" /> New Diagram
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Diagram</DialogTitle>
+                </DialogHeader>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Diagram name..."
+                    value={newName}
+                    onChange={e => setNewName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleCreate()}
+                    autoFocus
+                  />
+                  <Button onClick={handleCreate}>Create</Button>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+        </div>
+
+        {sortedCharts.length === 0 ? (
+          <div className="border-2 border-dashed rounded-xl p-12 text-center">
+            <Network className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-40" />
+            <h3 className="font-semibold text-lg mb-1">No diagrams yet</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Create your first architecture diagram to get started
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-3">
+            {sortedCharts.map(chart => (
+              <div
+                key={chart.id}
+                className="group border rounded-lg p-4 hover:border-primary/40 hover:bg-accent/30 transition-all cursor-pointer flex items-center justify-between"
+                onClick={() => navigate(`/chart/${chart.id}`)}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Network className="h-4 w-4 text-primary" />
+                  </div>
+                  <div className="min-w-0">
+                    <h3 className="font-medium text-sm truncate">{chart.name}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      {chart.nodes.length} nodes · {chart.edges.length} edges · {new Date(chart.updatedAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7"
+                    onClick={(e) => { e.stopPropagation(); deleteChart(chart.id); toast.success('Deleted'); }}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </Button>
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </main>
     </div>
   );
 };

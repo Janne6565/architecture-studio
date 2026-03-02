@@ -1,0 +1,275 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  addEdge,
+  useNodesState,
+  useEdgesState,
+  type Connection,
+  type NodeTypes,
+  type EdgeTypes,
+  BackgroundVariant,
+} from '@xyflow/react';
+import type { ArchNode, ArchEdge, NodeType, EdgeType } from '@/types/chart';
+import { NODE_TYPES_CONFIG } from '@/types/chart';
+import { useChartStorage } from '@/hooks/useChartStorage';
+import { useUndoRedo } from '@/hooks/useUndoRedo';
+import ArchitectureNode from '@/components/chart/ArchitectureNode';
+import ArchitectureEdge from '@/components/chart/ArchitectureEdge';
+import NodePalette from '@/components/chart/NodePalette';
+import PropertiesPanel from '@/components/chart/PropertiesPanel';
+import EditorToolbar from '@/components/chart/EditorToolbar';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+
+const nodeTypes: NodeTypes = { architecture: ArchitectureNode };
+const edgeTypes: EdgeTypes = { architecture: ArchitectureEdge };
+
+export default function ChartEditor() {
+  const { chartId } = useParams<{ chartId: string }>();
+  const navigate = useNavigate();
+  const { getChart, updateChart } = useChartStorage();
+  const [edgeType, setEdgeType] = useState<EdgeType>('rest');
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+  const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  const chart = useMemo(() => getChart(chartId || ''), [chartId, getChart]);
+
+  const [nodes, setNodes, onNodesChange] = useNodesState<ArchNode>(chart?.nodes || []);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<ArchEdge>(chart?.edges || []);
+
+  const {
+    state: historyState, set: pushHistory,
+    undo, redo, canUndo, canRedo, reset: resetHistory,
+  } = useUndoRedo({ nodes: chart?.nodes || [], edges: chart?.edges || [] });
+
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
+
+  const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
+  const selectedEdge = useMemo(() => edges.find(e => e.id === selectedEdgeId) || null, [edges, selectedEdgeId]);
+
+  // Auto-save
+  useEffect(() => {
+    if (!chartId) return;
+    clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      updateChart(chartId, { nodes, edges });
+    }, 500);
+    return () => clearTimeout(saveTimer.current);
+  }, [nodes, edges, chartId, updateChart]);
+
+  // Undo/redo keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+        if (selectedNodeId) {
+          setNodes(ns => ns.filter(n => n.id !== selectedNodeId));
+          setEdges(es => es.filter(e => e.source !== selectedNodeId && e.target !== selectedNodeId));
+          setSelectedNodeId(null);
+        }
+        if (selectedEdgeId) {
+          setEdges(es => es.filter(e => e.id !== selectedEdgeId));
+          setSelectedEdgeId(null);
+        }
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [undo, redo, selectedNodeId, selectedEdgeId, setNodes, setEdges]);
+
+  // Sync undo/redo state
+  useEffect(() => {
+    setNodes(historyState.nodes);
+    setEdges(historyState.edges);
+  }, [historyState, setNodes, setEdges]);
+
+  const pushCurrentState = useCallback(() => {
+    pushHistory({ nodes, edges });
+  }, [nodes, edges, pushHistory]);
+
+  const onConnect = useCallback((connection: Connection) => {
+    const newEdge: ArchEdge = {
+      ...connection,
+      id: `e-${Date.now()}`,
+      type: 'architecture',
+      data: { edgeType, description: '' },
+    } as ArchEdge;
+    setEdges(es => addEdge(newEdge, es) as ArchEdge[]);
+    setTimeout(pushCurrentState, 0);
+  }, [edgeType, setEdges, pushCurrentState]);
+
+  const onNodesChangeWrapped = useCallback((changes: Parameters<typeof onNodesChange>[0]) => {
+    onNodesChange(changes);
+    const significant = changes.some(c => c.type === 'position' && c.dragging === false);
+    if (significant) setTimeout(pushCurrentState, 0);
+  }, [onNodesChange, pushCurrentState]);
+
+  const onAddNode = useCallback((type: NodeType) => {
+    const config = NODE_TYPES_CONFIG.find(c => c.type === type)!;
+    const newNode: ArchNode = {
+      id: `node-${Date.now()}`,
+      type: 'architecture',
+      position: { x: 200 + Math.random() * 200, y: 150 + Math.random() * 200 },
+      data: {
+        label: config.label,
+        description: '',
+        nodeType: type,
+      },
+    };
+    setNodes(ns => [...ns, newNode]);
+    setTimeout(pushCurrentState, 0);
+  }, [setNodes, pushCurrentState]);
+
+  const onUpdateNode = useCallback((id: string, data: Partial<ArchNode['data']>) => {
+    setNodes(ns => ns.map(n => n.id === id ? { ...n, data: { ...n.data, ...data } } : n));
+  }, [setNodes]);
+
+  const onUpdateEdge = useCallback((id: string, data: Partial<ArchEdge['data']>) => {
+    setEdges(es => es.map(e => e.id === id ? { ...e, data: { ...e.data!, ...data } } : e));
+  }, [setEdges]);
+
+  const onDeleteNode = useCallback((id: string) => {
+    setNodes(ns => ns.filter(n => n.id !== id));
+    setEdges(es => es.filter(e => e.source !== id && e.target !== id));
+    setSelectedNodeId(null);
+    setTimeout(pushCurrentState, 0);
+  }, [setNodes, setEdges, pushCurrentState]);
+
+  const onDeleteEdge = useCallback((id: string) => {
+    setEdges(es => es.filter(e => e.id !== id));
+    setSelectedEdgeId(null);
+    setTimeout(pushCurrentState, 0);
+  }, [setEdges, pushCurrentState]);
+
+  const onClear = useCallback(() => {
+    setNodes([]);
+    setEdges([]);
+    setSelectedNodeId(null);
+    setSelectedEdgeId(null);
+    pushHistory({ nodes: [], edges: [] });
+  }, [setNodes, setEdges, pushHistory]);
+
+  const onExportJson = useCallback(() => {
+    return JSON.stringify({ nodes, edges }, null, 2);
+  }, [nodes, edges]);
+
+  const onImportJson = useCallback((json: string) => {
+    try {
+      const data = JSON.parse(json);
+      if (data.nodes && data.edges) {
+        setNodes(data.nodes);
+        setEdges(data.edges);
+        pushHistory({ nodes: data.nodes, edges: data.edges });
+        toast.success('Diagram imported');
+      }
+    } catch {
+      toast.error('Invalid JSON file');
+    }
+  }, [setNodes, setEdges, pushHistory]);
+
+  const toggleDarkMode = useCallback(() => {
+    document.documentElement.classList.toggle('dark');
+    setDarkMode(d => !d);
+  }, []);
+
+  if (!chart) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-background">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Chart not found</h2>
+          <Button variant="outline" onClick={() => navigate('/')}>
+            <ArrowLeft className="h-4 w-4 mr-2" /> Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="h-screen flex flex-col bg-background">
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-10 w-10 rounded-none border-b border-r"
+          onClick={() => navigate('/')}
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <div className="flex-1">
+          <EditorToolbar
+            chartName={chart.name}
+            canUndo={canUndo}
+            canRedo={canRedo}
+            onUndo={undo}
+            onRedo={redo}
+            onClear={onClear}
+            onImportJson={onImportJson}
+            onExportJson={onExportJson}
+            darkMode={darkMode}
+            onToggleDarkMode={toggleDarkMode}
+          />
+        </div>
+      </div>
+
+      <div className="flex-1 flex overflow-hidden">
+        <NodePalette
+          onAddNode={onAddNode}
+          selectedEdgeType={edgeType}
+          onEdgeTypeChange={setEdgeType}
+        />
+
+        <div className="flex-1">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChangeWrapped}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            onNodeClick={(_, node) => { setSelectedNodeId(node.id); setSelectedEdgeId(null); }}
+            onEdgeClick={(_, edge) => { setSelectedEdgeId(edge.id); setSelectedNodeId(null); }}
+            onPaneClick={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
+            fitView
+            defaultEdgeOptions={{ type: 'architecture' }}
+            snapToGrid
+            snapGrid={[16, 16]}
+          >
+            <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
+            <Controls />
+            <MiniMap
+              nodeColor={(n) => {
+                const config = NODE_TYPES_CONFIG.find(c => c.type === (n.data as ArchNode['data'])?.nodeType);
+                return config ? `hsl(var(${config.colorVar}))` : 'hsl(var(--muted))';
+              }}
+              zoomable
+              pannable
+            />
+          </ReactFlow>
+        </div>
+
+        <PropertiesPanel
+          selectedNode={selectedNode}
+          selectedEdge={selectedEdge}
+          onUpdateNode={onUpdateNode}
+          onUpdateEdge={onUpdateEdge}
+          onDeleteNode={onDeleteNode}
+          onDeleteEdge={onDeleteEdge}
+          onClose={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
+        />
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,45 @@
+import { memo } from 'react';
+import { Handle, Position, type NodeProps } from '@xyflow/react';
+import type { ArchNode } from '@/types/chart';
+import { NODE_TYPES_CONFIG } from '@/types/chart';
+
+function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
+  const config = NODE_TYPES_CONFIG.find(c => c.type === data.nodeType);
+  const colorVar = config?.colorVar || '--primary';
+
+  return (
+    <div
+      className={`architecture-node rounded-lg border bg-card shadow-md transition-shadow ${
+        selected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-lg'
+      }`}
+      style={{ borderLeftWidth: '4px', borderLeftColor: `hsl(var(${colorVar}))` }}
+    >
+      <Handle type="target" position={Position.Top} className="!-top-1" />
+      <Handle type="target" position={Position.Left} className="!-left-1" />
+
+      <div className="px-3 py-2.5">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-base">{config?.icon}</span>
+          <span
+            className="text-[10px] font-mono font-medium uppercase tracking-wider px-1.5 py-0.5 rounded"
+            style={{
+              backgroundColor: `hsl(var(${colorVar}) / 0.15)`,
+              color: `hsl(var(${colorVar}))`,
+            }}
+          >
+            {config?.label}
+          </span>
+        </div>
+        <div className="font-medium text-sm text-card-foreground truncate">{data.label}</div>
+        {data.description && (
+          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{data.description}</div>
+        )}
+      </div>
+
+      <Handle type="source" position={Position.Bottom} className="!-bottom-1" />
+      <Handle type="source" position={Position.Right} className="!-right-1" />
+    </div>
+  );
+}
+
+export default memo(ArchitectureNode);
