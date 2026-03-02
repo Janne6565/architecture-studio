@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Plus, Trash2, Network, Sun, Moon, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, Network, Sun, Moon, ChevronRight, Upload } from 'lucide-react';
 import { toast } from 'sonner';
 
 const Index = () => {
@@ -87,6 +87,50 @@ const Index = () => {
     setDarkMode(next);
   };
 
+  const handleImportFile = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const data = JSON.parse(text);
+        if (!data.nodes || !data.edges) {
+          toast.error('Invalid diagram file');
+          return;
+        }
+        const name = file.name.replace(/\.json$/i, '') || 'Imported Diagram';
+        const chart = createChart(name);
+        // Write imported nodes/edges into the chart
+        const all = JSON.parse(localStorage.getItem('archflow-charts') || '[]');
+        const idx = all.findIndex((c: { id: string }) => c.id === chart.id);
+        if (idx !== -1) {
+          all[idx].nodes = data.nodes;
+          all[idx].edges = data.edges;
+          localStorage.setItem('archflow-charts', JSON.stringify(all));
+        }
+        // Import custom types if present
+        if (Array.isArray(data.customNodeTypes) || Array.isArray(data.customEdgeTypes)) {
+          const existing = JSON.parse(localStorage.getItem('archflow-custom-types') || '{"nodeTypes":[],"edgeTypes":[]}');
+          const existingNodeIds = new Set((existing.nodeTypes || []).map((t: { id: string }) => t.id));
+          const existingEdgeIds = new Set((existing.edgeTypes || []).map((t: { id: string }) => t.id));
+          const newNodes = (data.customNodeTypes || []).filter((t: { id: string }) => !existingNodeIds.has(t.id));
+          const newEdges = (data.customEdgeTypes || []).filter((t: { id: string }) => !existingEdgeIds.has(t.id));
+          existing.nodeTypes = [...(existing.nodeTypes || []), ...newNodes];
+          existing.edgeTypes = [...(existing.edgeTypes || []), ...newEdges];
+          localStorage.setItem('archflow-custom-types', JSON.stringify(existing));
+        }
+        toast.success('Diagram imported');
+        navigate(`/chart/${chart.id}`);
+      } catch {
+        toast.error('Failed to parse JSON file');
+      }
+    };
+    input.click();
+  };
+
   const sortedCharts = [...charts].sort((a, b) => b.updatedAt - a.updatedAt);
 
   return (
@@ -117,6 +161,9 @@ const Index = () => {
                 <Plus className="h-4 w-4 mr-1.5" /> Start with Example
               </Button>
             )}
+            <Button variant="outline" onClick={handleImportFile}>
+              <Upload className="h-4 w-4 mr-1.5" /> Import from File
+            </Button>
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
