@@ -3,6 +3,7 @@ import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG, CATEGORY_LABELS } from '@/types/c
 import type { NodeCategory } from '@/types/chart';
 import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
 import CustomTypesDialog from '@/components/chart/CustomTypesDialog';
+import QuickAdd from '@/components/chart/QuickAdd';
 import { Input } from '@/components/ui/input';
 import { Search, Monitor, Server, Database, Globe, Cable, Container, MessageSquare, Activity, Shield, Puzzle, Plus } from 'lucide-react';
 
@@ -352,7 +353,33 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
 
         {/* Button bar */}
         <div className="flex items-center gap-1 rounded-2xl border bg-card/95 backdrop-blur-md shadow-xl px-2 py-1.5">
-          {CATEGORIES.map(cat => {
+          {CATEGORIES.slice(0, 5).map(cat => {
+            const isActive = activeCategory === cat.key;
+            return (
+              <button
+                key={cat.key}
+                ref={el => { buttonRefs.current[cat.key] = el; }}
+                onMouseEnter={() => handleEnter(cat.key)}
+                onMouseLeave={handleLeave}
+                className={`relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'hover:bg-muted text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {CATEGORY_ICONS[cat.key]}
+                <span className="hidden sm:inline">{cat.label}</span>
+                <span className="text-[10px] font-mono ml-1">{cat.shortcut}</span>
+              </button>
+            );
+          })}
+
+          {/* Central Quick Add button */}
+          <div className="mx-0.5 w-px h-6 bg-border" />
+          <QuickAdd onAddNode={onAddNode} />
+          <div className="mx-0.5 w-px h-6 bg-border" />
+
+          {CATEGORIES.slice(5).map(cat => {
             const isActive = activeCategory === cat.key;
             const isConnectionsWithSelection = cat.key === 'connections';
             return (
