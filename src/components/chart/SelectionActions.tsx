@@ -34,7 +34,7 @@ export default function SelectionActions({
                 className="w-2 h-2 rounded-full flex-shrink-0"
                 style={{ backgroundColor: config ? `hsl(var(${config.colorVar}))` : undefined }}
               />
-              <span className="truncate">{node.data.label}</span>
+              <span className="truncate max-w-[140px]">{node.data.label}</span>
             </div>
           );
         })}
