@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   ReactFlow,
+  ReactFlowProvider,
   Background,
   Controls,
   MiniMap,
@@ -29,7 +30,7 @@ import { toast } from 'sonner';
 const nodeTypes: NodeTypes = { architecture: ArchitectureNode };
 const edgeTypes: EdgeTypes = { architecture: ArchitectureEdge };
 
-export default function ChartEditor() {
+function ChartEditorInner() {
   const { chartId } = useParams<{ chartId: string }>();
   const navigate = useNavigate();
   const { getChart, updateChart } = useChartStorage();
@@ -271,5 +272,13 @@ export default function ChartEditor() {
         />
       </div>
     </div>
+  );
+}
+
+export default function ChartEditor() {
+  return (
+    <ReactFlowProvider>
+      <ChartEditorInner />
+    </ReactFlowProvider>
   );
 }
