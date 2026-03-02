@@ -25,6 +25,8 @@ import FloatingToolbar from '@/components/chart/FloatingToolbar';
 import LayersPanel from '@/components/chart/LayersPanel';
 import PropertiesPanel from '@/components/chart/PropertiesPanel';
 import EditorToolbar from '@/components/chart/EditorToolbar';
+import SelectionActions from '@/components/chart/SelectionActions';
+import CanvasContextMenu from '@/components/chart/CanvasContextMenu';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -79,6 +81,7 @@ function ChartEditorInner() {
 
   const selectedNode = useMemo(() => nodes.find(n => n.id === selectedNodeId) || null, [nodes, selectedNodeId]);
   const selectedEdge = useMemo(() => edges.find(e => e.id === selectedEdgeId) || null, [edges, selectedEdgeId]);
+  const selectedNodes = useMemo(() => nodes.filter(n => n.selected), [nodes]);
 
   useEffect(() => {
     nodesRef.current = nodes;
@@ -105,14 +108,15 @@ function ChartEditorInner() {
       }
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
+        
+        // Multi-select delete: check for selected nodes in React Flow
+        const rfSelectedIds = nodesRef.current.filter(n => n.selected).map(n => n.id);
+        if (rfSelectedIds.length > 0) {
+          deleteNodesByIds(rfSelectedIds);
+          return;
+        }
         if (selectedNodeId) {
-          const nextNodes = nodesRef.current.filter(n => n.id !== selectedNodeId);
-          const nextEdges = edgesRef.current.filter(e => e.source !== selectedNodeId && e.target !== selectedNodeId);
-          setNodes(nextNodes);
-          setEdges(nextEdges);
-          setSelectedNodeId(null);
-          setSelectedEdgeId(null);
-          pushHistory({ nodes: nextNodes, edges: nextEdges });
+          deleteNodesByIds([selectedNodeId]);
           return;
         }
         if (selectedEdgeId) {
@@ -191,15 +195,20 @@ function ChartEditorInner() {
     setEdges(es => es.map(e => e.id === id ? { ...e, data: { ...e.data!, ...data } } : e));
   }, [setEdges]);
 
-  const onDeleteNode = useCallback((id: string) => {
-    const nextNodes = nodesRef.current.filter(n => n.id !== id);
-    const nextEdges = edgesRef.current.filter(e => e.source !== id && e.target !== id);
+  const deleteNodesByIds = useCallback((ids: string[]) => {
+    const idSet = new Set(ids);
+    const nextNodes = nodesRef.current.filter(n => !idSet.has(n.id));
+    const nextEdges = edgesRef.current.filter(e => !idSet.has(e.source) && !idSet.has(e.target));
     setNodes(nextNodes);
     setEdges(nextEdges);
     setSelectedNodeId(null);
     setSelectedEdgeId(null);
     pushCurrentState(nextNodes, nextEdges);
   }, [setNodes, setEdges, pushCurrentState]);
+
+  const onDeleteNode = useCallback((id: string) => {
+    deleteNodesByIds([id]);
+  }, [deleteNodesByIds]);
 
   const onDeleteEdge = useCallback((id: string) => {
     const nextEdges = edgesRef.current.filter(e => e.id !== id);
@@ -328,17 +337,32 @@ function ChartEditorInner() {
             selectedEdgeType={edgeType}
             onEdgeTypeChange={setEdgeType}
           />
-        </div>
 
-        <PropertiesPanel
-          selectedNode={selectedNode}
-          selectedEdge={selectedEdge}
-          onUpdateNode={onUpdateNode}
-          onUpdateEdge={onUpdateEdge}
-          onDeleteNode={onDeleteNode}
-          onDeleteEdge={onDeleteEdge}
-          onClose={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
-        />
+          <SelectionActions
+            selectedNodes={selectedNodes}
+            onDeleteSelected={() => deleteNodesByIds(selectedNodes.map(n => n.id))}
+            onClearSelection={() => {
+              setNodes(ns => ns.map(n => ({ ...n, selected: false })));
+              setSelectedNodeId(null);
+            }}
+          />
+
+          <PropertiesPanel
+            selectedNode={selectedNodes.length <= 1 ? selectedNode : null}
+            selectedEdge={selectedEdge}
+            onUpdateNode={onUpdateNode}
+            onUpdateEdge={onUpdateEdge}
+            onDeleteNode={onDeleteNode}
+            onDeleteEdge={onDeleteEdge}
+            onClose={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
+          />
+
+          <CanvasContextMenu
+            nodes={nodes}
+            onDeleteNodes={deleteNodesByIds}
+            onSelectNode={(id) => { setSelectedNodeId(id); setSelectedEdgeId(null); }}
+          />
+        </div>
       </div>
     </div>
   );
