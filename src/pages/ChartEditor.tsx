@@ -6,7 +6,6 @@ import {
   Background,
   Controls,
   MiniMap,
-  addEdge,
   useNodesState,
   useEdgesState,
   type Connection,
@@ -15,11 +14,12 @@ import {
   BackgroundVariant,
   SelectionMode,
 } from '@xyflow/react';
-import type { ArchNode, ArchEdge, NodeType, EdgeType } from '@/types/chart';
+import type { AnyNode, ArchNode, ArchEdge, GroupNode, NodeType, EdgeType } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
 import { useChartStorage } from '@/hooks/useChartStorage';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import ArchitectureNode from '@/components/chart/ArchitectureNode';
+import GroupNodeComponent from '@/components/chart/GroupNode';
 import ArchitectureEdge from '@/components/chart/ArchitectureEdge';
 import FloatingToolbar from '@/components/chart/FloatingToolbar';
 import LayersPanel from '@/components/chart/LayersPanel';
@@ -31,7 +31,7 @@ import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-const nodeTypes: NodeTypes = { architecture: ArchitectureNode };
+const nodeTypes: NodeTypes = { architecture: ArchitectureNode, group: GroupNodeComponent };
 const edgeTypes: EdgeTypes = { architecture: ArchitectureEdge };
 
 function ChartEditorInner() {
@@ -54,9 +54,9 @@ function ChartEditorInner() {
 
   const chart = useMemo(() => getChart(chartId || ''), [chartId, getChart]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState<ArchNode>(chart?.nodes || []);
+  const [nodes, setNodes, onNodesChange] = useNodesState<AnyNode>(chart?.nodes || []);
   const [edges, setEdges, onEdgesChange] = useEdgesState<ArchEdge>(chart?.edges || []);
-  const nodesRef = useRef<ArchNode[]>(chart?.nodes || []);
+  const nodesRef = useRef<AnyNode[]>(chart?.nodes || []);
   const edgesRef = useRef<ArchEdge[]>(chart?.edges || []);
 
   const {
@@ -139,7 +139,7 @@ function ChartEditorInner() {
     setEdges(historyState.edges);
   }, [historyState, setNodes, setEdges]);
 
-  const pushCurrentState = useCallback((nextNodes?: ArchNode[], nextEdges?: ArchEdge[]) => {
+  const pushCurrentState = useCallback((nextNodes?: AnyNode[], nextEdges?: ArchEdge[]) => {
     pushHistory({
       nodes: nextNodes ?? nodesRef.current,
       edges: nextEdges ?? edgesRef.current,
@@ -155,7 +155,7 @@ function ChartEditorInner() {
     } as ArchEdge;
 
     setEdges(es => {
-      const updated = addEdge(newEdge, es) as ArchEdge[];
+      const updated = [...es, newEdge] as ArchEdge[];
       setTimeout(() => pushCurrentState(undefined, updated), 0);
       return updated;
     });
@@ -187,8 +187,8 @@ function ChartEditorInner() {
     });
   }, [setNodes, pushCurrentState]);
 
-  const onUpdateNode = useCallback((id: string, data: Partial<ArchNode['data']>) => {
-    setNodes(ns => ns.map(n => n.id === id ? { ...n, data: { ...n.data, ...data } } : n));
+  const onUpdateNode = useCallback((id: string, data: Record<string, unknown>) => {
+    setNodes(ns => ns.map(n => n.id === id ? { ...n, data: { ...n.data, ...data } } as AnyNode : n));
   }, [setNodes]);
 
   const onUpdateEdge = useCallback((id: string, data: Partial<ArchEdge['data']>) => {
@@ -197,6 +197,10 @@ function ChartEditorInner() {
 
   const deleteNodesByIds = useCallback((ids: string[]) => {
     const idSet = new Set(ids);
+    // Also delete children of any deleted group nodes
+    nodesRef.current
+      .filter(n => n.parentId && idSet.has(n.parentId))
+      .forEach(n => idSet.add(n.id));
     const nextNodes = nodesRef.current.filter(n => !idSet.has(n.id));
     const nextEdges = edgesRef.current.filter(e => !idSet.has(e.source) && !idSet.has(e.target));
     setNodes(nextNodes);
@@ -216,6 +220,53 @@ function ChartEditorInner() {
     setSelectedEdgeId(null);
     pushCurrentState(undefined, nextEdges);
   }, [setEdges, pushCurrentState]);
+
+  const onGroupNodes = useCallback((ids: string[]) => {
+    const targetNodes = nodesRef.current.filter(n => ids.includes(n.id));
+    if (targetNodes.length < 2) return;
+    const padding = 40;
+    const minX = Math.min(...targetNodes.map(n => n.position.x)) - padding;
+    const minY = Math.min(...targetNodes.map(n => n.position.y)) - padding;
+    const maxX = Math.max(...targetNodes.map(n => n.position.x + ((n.measured?.width as number) || 224))) + padding;
+    const maxY = Math.max(...targetNodes.map(n => n.position.y + ((n.measured?.height as number) || 80))) + padding;
+    const groupId = `group-${Date.now()}`;
+    const groupNode: GroupNode = {
+      id: groupId,
+      type: 'group',
+      position: { x: minX, y: minY },
+      style: { width: maxX - minX, height: maxY - minY },
+      data: { label: 'Group' },
+    };
+    const idSet = new Set(ids);
+    const updatedChildren = targetNodes.map(n => ({
+      ...n,
+      parentId: groupId,
+      position: { x: n.position.x - minX, y: n.position.y - minY },
+      selected: false,
+    }));
+    const otherNodes = nodesRef.current.filter(n => !idSet.has(n.id));
+    const nextNodes: AnyNode[] = [groupNode, ...otherNodes, ...updatedChildren];
+    setNodes(nextNodes);
+    setSelectedNodeId(groupId);
+    setSelectedEdgeId(null);
+    pushCurrentState(nextNodes);
+  }, [setNodes, pushCurrentState]);
+
+  const onUngroup = useCallback((groupId: string) => {
+    const group = nodesRef.current.find(n => n.id === groupId);
+    if (!group) return;
+    const children = nodesRef.current.filter(n => n.parentId === groupId);
+    const others = nodesRef.current.filter(n => n.id !== groupId && n.parentId !== groupId);
+    const restoredChildren = children.map(n => ({
+      ...n,
+      parentId: undefined,
+      position: { x: n.position.x + group.position.x, y: n.position.y + group.position.y },
+    }));
+    const nextNodes: AnyNode[] = [...others, ...restoredChildren];
+    setNodes(nextNodes);
+    setSelectedNodeId(null);
+    pushCurrentState(nextNodes);
+  }, [setNodes, pushCurrentState]);
 
   const onClear = useCallback(() => {
     setNodes([]);
@@ -349,6 +400,7 @@ function ChartEditorInner() {
               setNodes(ns => ns.map(n => ({ ...n, selected: false })));
               setSelectedNodeId(null);
             }}
+            onGroupNodes={onGroupNodes}
           />
 
           <PropertiesPanel
@@ -358,6 +410,7 @@ function ChartEditorInner() {
             onUpdateEdge={onUpdateEdge}
             onDeleteNode={onDeleteNode}
             onDeleteEdge={onDeleteEdge}
+            onUngroup={onUngroup}
             onClose={() => { setSelectedNodeId(null); setSelectedEdgeId(null); }}
           />
 

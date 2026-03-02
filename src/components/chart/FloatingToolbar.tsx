@@ -270,7 +270,7 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
                     ({activeEdgeLabel})
                   </span>
                 )}
-                <span className="text-[10px] font-mono opacity-40 ml-1">{cat.shortcut}</span>
+                <span className="text-[10px] font-mono ml-1">{cat.shortcut}</span>
               </button>
             );
           })}

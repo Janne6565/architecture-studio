@@ -2,6 +2,7 @@ import { memo } from 'react';
 import {
   EdgeLabelRenderer,
   getSmoothStepPath,
+  useEdges,
   type EdgeProps,
 } from '@xyflow/react';
 import type { ArchEdge } from '@/types/chart';
@@ -28,7 +29,7 @@ const EDGE_LABELS: Record<string, string> = {
 
 function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
   const {
-    id, sourceX, sourceY, targetX, targetY,
+    id, source, target, sourceX, sourceY, targetX, targetY,
     sourcePosition, targetPosition, data, selected, style,
   } = props;
 
@@ -36,13 +37,33 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
   const edgeType = data?.edgeType || 'rest';
   const strokeColor = selected ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))';
   const isDisabled = direction === 'none';
-
   const isReverse = direction === 'reverse';
+
+  // Compute perpendicular offset for parallel edges between the same node pair
+  const allEdges = useEdges();
+  const pairKey = [source, target].sort().join('|||');
+  const parallelEdges = allEdges.filter(e => [e.source, e.target].sort().join('|||') === pairKey);
+  const edgeIndex = parallelEdges.findIndex(e => e.id === id);
+  const totalEdges = parallelEdges.length;
+
+  const dx = targetX - sourceX;
+  const dy = targetY - sourceY;
+  const len = Math.sqrt(dx * dx + dy * dy) || 1;
+  const perpX = -dy / len;
+  const perpY = dx / len;
+  const OFFSET_STEP = 28;
+  const offsetAmount = totalEdges > 1 ? (edgeIndex - (totalEdges - 1) / 2) * OFFSET_STEP : 0;
+
+  const offSX = sourceX + perpX * offsetAmount;
+  const offSY = sourceY + perpY * offsetAmount;
+  const offTX = targetX + perpX * offsetAmount;
+  const offTY = targetY + perpY * offsetAmount;
+
   const [edgePath, labelX, labelY] = getSmoothStepPath({
-    sourceX: isReverse ? targetX : sourceX,
-    sourceY: isReverse ? targetY : sourceY,
-    targetX: isReverse ? sourceX : targetX,
-    targetY: isReverse ? sourceY : targetY,
+    sourceX: isReverse ? offTX : offSX,
+    sourceY: isReverse ? offTY : offSY,
+    targetX: isReverse ? offSX : offTX,
+    targetY: isReverse ? offSY : offTY,
     sourcePosition: isReverse ? targetPosition : sourcePosition,
     targetPosition: isReverse ? sourcePosition : targetPosition,
     borderRadius: 16,
@@ -115,11 +136,12 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
             isDisabled ? 'opacity-40' : ''
           } ${
             selected
-              ? 'bg-primary text-primary-foreground border-primary'
-              : 'bg-card text-muted-foreground border-border'
+              ? 'bg-primary text-primary-foreground border-primary shadow-md'
+              : 'bg-background text-foreground border-border shadow-sm'
           }`}
           style={{
             transform: `translate(-50%, -50%) translate(${labelX}px, ${labelY}px)`,
+            zIndex: 1000,
           }}
         >
           {direction === 'bidirectional' && '⇄ '}

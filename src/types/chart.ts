@@ -41,10 +41,17 @@ export interface EdgeData {
 export type ArchNode = Node<NodeData>;
 export type ArchEdge = Edge<EdgeData>;
 
+export interface GroupNodeData {
+  label: string;
+  [key: string]: unknown;
+}
+export type GroupNode = Node<GroupNodeData>;
+export type AnyNode = ArchNode | GroupNode;
+
 export interface ChartData {
   id: string;
   name: string;
-  nodes: ArchNode[];
+  nodes: AnyNode[];
   edges: ArchEdge[];
   createdAt: number;
   updatedAt: number;

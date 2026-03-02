@@ -69,13 +69,14 @@ export default function EditorToolbar({
     try {
       const fn = format === 'png' ? toPng : toSvg;
       const pixelRatio = targetWidth ? targetWidth / el.offsetWidth : 1;
-      const url = await fn(el, { quality: 1, backgroundColor: 'transparent', pixelRatio });
+      const url = await fn(el, { quality: 1, backgroundColor: 'transparent', pixelRatio, skipFonts: true });
       const a = document.createElement('a');
       a.href = url;
       a.download = `${chartName}.${format}`;
       a.click();
       toast.success(`Exported as ${format.toUpperCase()}`);
-    } catch {
+    } catch (err) {
+      console.error('[Export] failed:', err);
       toast.error('Export failed');
     } finally {
       for (const handle of hiddenHandles) {

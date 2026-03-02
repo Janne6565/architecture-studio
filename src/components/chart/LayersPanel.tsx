@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import type { ArchNode, ArchEdge } from '@/types/chart';
+import type { AnyNode, ArchEdge, NodeData } from '@/types/chart';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG } from '@/types/chart';
-import { ChevronLeft, ChevronRight, Layers, ArrowRight, Trash2 } from 'lucide-react';
+import { ChevronLeft, Layers, ArrowRight, Trash2, Group } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 interface LayersPanelProps {
-  nodes: ArchNode[];
+  nodes: AnyNode[];
   edges: ArchEdge[];
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
@@ -22,6 +22,10 @@ export default function LayersPanel({
   onDeleteNode, onDeleteEdge,
 }: LayersPanelProps) {
   const [collapsed, setCollapsed] = useState(false);
+
+  const groupNodes = nodes.filter(n => n.type === 'group');
+  const ungroupedNodes = nodes.filter(n => n.type !== 'group' && !n.parentId);
+  const childNodes = nodes.filter(n => n.type !== 'group' && n.parentId != null);
 
   if (collapsed) {
     return (
@@ -68,8 +72,61 @@ export default function LayersPanel({
               Nodes
             </div>
             <div className="space-y-0.5">
-              {nodes.map(node => {
-                const config = NODE_TYPES_CONFIG.find(c => c.type === node.data.nodeType);
+              {/* Group nodes with their children */}
+              {groupNodes.map(group => {
+                const groupChildren = childNodes.filter(n => n.parentId === group.id);
+                return (
+                  <div key={group.id}>
+                    <div
+                      onClick={() => onSelectNode(group.id)}
+                      className={`flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs cursor-pointer group transition-colors ${
+                        selectedNodeId === group.id
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-muted'
+                      }`}
+                    >
+                      <Group className="w-3 h-3 flex-shrink-0 text-muted-foreground" />
+                      <span className="truncate flex-1">{group.data.label as string}</span>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); onDeleteNode(group.id); }}
+                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                      </button>
+                    </div>
+                    {groupChildren.map(child => {
+                      const config = NODE_TYPES_CONFIG.find(c => c.type === (child.data as NodeData).nodeType);
+                      return (
+                        <div
+                          key={child.id}
+                          onClick={() => onSelectNode(child.id)}
+                          className={`flex items-center gap-2 pl-6 pr-2 py-1.5 rounded-lg text-xs cursor-pointer group transition-colors ${
+                            selectedNodeId === child.id
+                              ? 'bg-primary/10 text-primary'
+                              : 'hover:bg-muted'
+                          }`}
+                        >
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: config ? `hsl(var(${config.colorVar}))` : undefined }}
+                          />
+                          <span className="truncate flex-1">{(child.data as NodeData).label}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">{config?.label}</span>
+                          <button
+                            onClick={(e) => { e.stopPropagation(); onDeleteNode(child.id); }}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <Trash2 className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+              {/* Ungrouped nodes */}
+              {ungroupedNodes.map(node => {
+                const config = NODE_TYPES_CONFIG.find(c => c.type === (node.data as NodeData).nodeType);
                 return (
                   <div
                     key={node.id}
@@ -84,7 +141,7 @@ export default function LayersPanel({
                       className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: config ? `hsl(var(${config.colorVar}))` : undefined }}
                     />
-                    <span className="truncate flex-1">{node.data.label}</span>
+                    <span className="truncate flex-1">{(node.data as NodeData).label}</span>
                     <span className="text-[10px] text-muted-foreground font-mono">{config?.label}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDeleteNode(node.id); }}
@@ -110,6 +167,8 @@ export default function LayersPanel({
                 const sourceNode = nodes.find(n => n.id === edge.source);
                 const targetNode = nodes.find(n => n.id === edge.target);
                 const edgeConfig = EDGE_TYPES_CONFIG.find(c => c.type === edge.data?.edgeType);
+                const sourceLabel = sourceNode ? (sourceNode.data.label as string) : '?';
+                const targetLabel = targetNode ? (targetNode.data.label as string) : '?';
                 return (
                   <div
                     key={edge.id}
@@ -120,9 +179,9 @@ export default function LayersPanel({
                         : 'hover:bg-muted'
                     }`}
                   >
-                    <span className="truncate max-w-[70px]">{sourceNode?.data.label || '?'}</span>
+                    <span className="truncate max-w-[70px]">{sourceLabel}</span>
                     <ArrowRight className="h-3 w-3 flex-shrink-0 text-muted-foreground" />
-                    <span className="truncate max-w-[70px]">{targetNode?.data.label || '?'}</span>
+                    <span className="truncate max-w-[70px]">{targetLabel}</span>
                     <span className="text-[10px] text-muted-foreground font-mono ml-auto">{edgeConfig?.label}</span>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDeleteEdge(edge.id); }}

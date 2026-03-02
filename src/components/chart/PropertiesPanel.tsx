@@ -1,31 +1,77 @@
-import type { ArchNode, ArchEdge, EdgeDirection, EdgeType } from '@/types/chart';
+import type { AnyNode, ArchEdge, EdgeDirection, EdgeType, NodeData, GroupNodeData } from '@/types/chart';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG } from '@/types/chart';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, X, ArrowRight, ArrowLeftRight, ArrowLeft, Ban } from 'lucide-react';
+import { Trash2, X, ArrowRight, ArrowLeftRight, ArrowLeft, Ban, Group } from 'lucide-react';
 
 interface PropertiesPanelProps {
-  selectedNode?: ArchNode | null;
+  selectedNode?: AnyNode | null;
   selectedEdge?: ArchEdge | null;
-  onUpdateNode: (id: string, data: Partial<ArchNode['data']>) => void;
+  onUpdateNode: (id: string, data: Record<string, unknown>) => void;
   onUpdateEdge: (id: string, data: Partial<ArchEdge['data']>) => void;
   onDeleteNode: (id: string) => void;
   onDeleteEdge: (id: string) => void;
+  onUngroup?: (groupId: string) => void;
   onClose: () => void;
 }
 
 export default function PropertiesPanel({
   selectedNode, selectedEdge,
   onUpdateNode, onUpdateEdge,
-  onDeleteNode, onDeleteEdge, onClose,
+  onDeleteNode, onDeleteEdge, onUngroup, onClose,
 }: PropertiesPanelProps) {
   if (!selectedNode && !selectedEdge) return null;
 
   if (selectedNode) {
-    const config = NODE_TYPES_CONFIG.find(c => c.type === selectedNode.data.nodeType);
+    if (selectedNode.type === 'group') {
+      const groupData = selectedNode.data as GroupNodeData;
+      return (
+        <div className="absolute top-3 right-3 z-40 w-64 rounded-xl border bg-card/95 backdrop-blur-md shadow-xl overflow-hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
+          <div className="p-3 border-b flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Group className="w-3.5 h-3.5 text-muted-foreground" />
+              <h3 className="font-semibold text-xs">Group Properties</h3>
+            </div>
+            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="p-3">
+            <Label className="text-xs">Label</Label>
+            <Input
+              value={groupData.label as string}
+              onChange={e => onUpdateNode(selectedNode.id, { label: e.target.value })}
+              className="h-8 text-sm mt-1"
+            />
+          </div>
+          <div className="p-3 border-t space-y-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full h-8 text-xs"
+              onClick={() => onUngroup?.(selectedNode.id)}
+            >
+              <Group className="h-3.5 w-3.5 mr-1.5" />
+              Ungroup
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              className="w-full h-8 text-xs"
+              onClick={() => onDeleteNode(selectedNode.id)}
+            >
+              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Delete Group
+            </Button>
+          </div>
+        </div>
+      );
+    }
+
+    const nodeData = selectedNode.data as NodeData;
+    const config = NODE_TYPES_CONFIG.find(c => c.type === nodeData.nodeType);
     return (
       <div className="absolute top-3 right-3 z-40 w-64 rounded-xl border bg-card/95 backdrop-blur-md shadow-xl overflow-hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
         <div className="p-3 border-b flex items-center justify-between">
@@ -47,7 +93,7 @@ export default function PropertiesPanel({
           <div>
             <Label className="text-xs">Label</Label>
             <Input
-              value={selectedNode.data.label}
+              value={nodeData.label}
               onChange={e => onUpdateNode(selectedNode.id, { label: e.target.value })}
               className="h-8 text-sm mt-1"
             />
@@ -55,7 +101,7 @@ export default function PropertiesPanel({
           <div>
             <Label className="text-xs">Description</Label>
             <Textarea
-              value={selectedNode.data.description}
+              value={nodeData.description}
               onChange={e => onUpdateNode(selectedNode.id, { description: e.target.value })}
               placeholder="Add a description..."
               className="text-sm mt-1 min-h-[80px] resize-y"
