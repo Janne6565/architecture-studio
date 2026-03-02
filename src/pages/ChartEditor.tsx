@@ -38,7 +38,17 @@ function ChartEditorInner() {
   const { getChart, updateChart } = useChartStorage();
   const [edgeType, setEdgeType] = useState<EdgeType>('rest');
   const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
+  const [shiftHeld, setShiftHeld] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
+
+  // Track Shift key for drag-select
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => { if (e.key === 'Shift') setShiftHeld(true); };
+    const up = (e: KeyboardEvent) => { if (e.key === 'Shift') setShiftHeld(false); };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => { window.removeEventListener('keydown', down); window.removeEventListener('keyup', up); };
+  }, []);
 
   const chart = useMemo(() => getChart(chartId || ''), [chartId, getChart]);
 
@@ -296,10 +306,9 @@ function ChartEditorInner() {
             defaultEdgeOptions={{ type: 'architecture' }}
             snapToGrid
             snapGrid={[16, 16]}
-            selectionOnDrag
+            selectionOnDrag={shiftHeld}
             selectionMode={SelectionMode.Partial}
-            panOnDrag={[0, 1]}
-            selectionKeyCode="Shift"
+            panOnDrag={!shiftHeld}
             panOnScroll
           >
             <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
