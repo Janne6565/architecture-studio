@@ -257,8 +257,8 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
               >
                 {CATEGORY_ICONS[cat.key]}
                 <span className="hidden sm:inline">{cat.label}</span>
-                {isConnectionsWithSelection && !isActive && (
-                  <span className="hidden sm:inline text-[10px] font-mono text-muted-foreground/70 ml-0.5">
+                {isConnectionsWithSelection && (
+                  <span className={`hidden sm:inline text-[10px] font-mono ml-0.5 ${isActive ? 'text-primary-foreground/70' : 'text-muted-foreground/70'}`}>
                     ({activeEdgeLabel})
                   </span>
                 )}
