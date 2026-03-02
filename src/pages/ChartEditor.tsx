@@ -13,6 +13,7 @@ import {
   type NodeTypes,
   type EdgeTypes,
   BackgroundVariant,
+  SelectionMode,
 } from '@xyflow/react';
 import type { ArchNode, ArchEdge, NodeType, EdgeType } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
@@ -295,6 +296,11 @@ function ChartEditorInner() {
             defaultEdgeOptions={{ type: 'architecture' }}
             snapToGrid
             snapGrid={[16, 16]}
+            selectionOnDrag
+            selectionMode={SelectionMode.Partial}
+            panOnDrag={[0, 1]}
+            selectionKeyCode="Shift"
+            panOnScroll
           >
             <Background variant={BackgroundVariant.Dots} gap={16} size={1} />
             <Controls />
