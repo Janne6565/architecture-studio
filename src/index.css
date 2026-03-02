@@ -29,15 +29,90 @@
     --radius: 0.5rem;
 
     --node-frontend: 210 90% 56%;
+    --node-frontend-vue: 153 70% 45%;
+    --node-frontend-angular: 0 70% 55%;
+    --node-frontend-svelte: 15 90% 55%;
+    --node-frontend-next: 220 15% 30%;
+    --node-frontend-astro: 280 60% 55%;
+
     --node-backend-spring: 142 60% 45%;
     --node-backend-go: 25 95% 55%;
     --node-backend-rust: 270 50% 55%;
+    --node-backend-express: 142 55% 42%;
+    --node-backend-nest: 350 75% 55%;
+    --node-backend-fastapi: 170 80% 40%;
+    --node-backend-django: 142 45% 38%;
+    --node-backend-rails: 0 65% 50%;
+    --node-backend-laravel: 10 80% 55%;
+    --node-backend-dotnet: 265 60% 55%;
+    --node-backend-flask: 220 10% 45%;
+
     --node-datastore-influx: 175 70% 42%;
     --node-datastore-postgres: 45 90% 52%;
     --node-datastore-loki: 220 10% 55%;
+    --node-datastore-mysql: 200 80% 50%;
+    --node-datastore-mongo: 120 50% 40%;
+    --node-datastore-redis: 0 75% 50%;
+    --node-datastore-elastic: 48 90% 50%;
+    --node-datastore-cassandra: 210 30% 50%;
+    --node-datastore-dynamo: 30 90% 52%;
+    --node-datastore-sqlite: 210 50% 55%;
+    --node-datastore-neo4j: 200 70% 48%;
+    --node-datastore-cockroach: 265 45% 50%;
+    --node-datastore-supabase: 153 70% 45%;
+    --node-datastore-firebase: 35 95% 55%;
+    --node-datastore-planetscale: 220 15% 35%;
+
     --node-external-discord: 265 60% 58%;
     --node-external-n8n: 210 80% 55%;
     --node-external-slack: 155 65% 42%;
+    --node-external-stripe: 250 65% 58%;
+    --node-external-twilio: 0 70% 52%;
+    --node-external-sendgrid: 200 80% 48%;
+    --node-external-aws: 30 90% 50%;
+    --node-external-cloudflare: 30 95% 55%;
+    --node-external-github: 220 10% 35%;
+    --node-external-gitlab: 22 85% 52%;
+    --node-external-jira: 215 80% 55%;
+    --node-external-zapier: 25 90% 55%;
+    --node-external-webhook: 200 60% 48%;
+
+    --node-devops-docker: 205 80% 52%;
+    --node-devops-k8s: 215 75% 55%;
+    --node-devops-terraform: 265 55% 52%;
+    --node-devops-jenkins: 10 65% 45%;
+    --node-devops-gha: 220 10% 35%;
+    --node-devops-gitlab: 22 85% 52%;
+    --node-devops-argo: 200 70% 50%;
+    --node-devops-ansible: 0 65% 45%;
+    --node-devops-nginx: 142 65% 42%;
+    --node-devops-traefik: 200 75% 50%;
+    --node-devops-vault: 220 15% 35%;
+    --node-devops-consul: 340 60% 52%;
+
+    --node-messaging-kafka: 220 10% 35%;
+    --node-messaging-rabbit: 30 90% 55%;
+    --node-messaging-redis: 0 75% 50%;
+    --node-messaging-sqs: 30 90% 50%;
+    --node-messaging-nats: 200 80% 52%;
+    --node-messaging-pulsar: 265 55% 55%;
+    --node-messaging-eventbridge: 30 80% 50%;
+
+    --node-monitoring-grafana: 30 90% 52%;
+    --node-monitoring-prometheus: 15 85% 52%;
+    --node-monitoring-datadog: 265 55% 55%;
+    --node-monitoring-sentry: 350 60% 50%;
+    --node-monitoring-elk: 170 60% 42%;
+    --node-monitoring-jaeger: 200 70% 50%;
+    --node-monitoring-pagerduty: 142 65% 45%;
+    --node-monitoring-newrelic: 170 70% 42%;
+
+    --node-auth-keycloak: 210 60% 48%;
+    --node-auth-auth0: 15 80% 52%;
+    --node-auth-okta: 210 75% 55%;
+    --node-auth-firebase: 35 95% 55%;
+    --node-auth-clerk: 265 55% 55%;
+    --node-auth-supabase: 153 70% 45%;
 
     --canvas-bg: 220 18% 96%;
     --canvas-grid: 220 15% 88%;
@@ -74,15 +149,90 @@
     --ring: 190 85% 50%;
 
     --node-frontend: 210 90% 60%;
+    --node-frontend-vue: 153 70% 50%;
+    --node-frontend-angular: 0 70% 60%;
+    --node-frontend-svelte: 15 90% 60%;
+    --node-frontend-next: 220 15% 60%;
+    --node-frontend-astro: 280 60% 62%;
+
     --node-backend-spring: 142 65% 50%;
     --node-backend-go: 25 95% 60%;
     --node-backend-rust: 270 55% 62%;
+    --node-backend-express: 142 55% 48%;
+    --node-backend-nest: 350 75% 60%;
+    --node-backend-fastapi: 170 80% 48%;
+    --node-backend-django: 142 45% 45%;
+    --node-backend-rails: 0 65% 55%;
+    --node-backend-laravel: 10 80% 60%;
+    --node-backend-dotnet: 265 60% 62%;
+    --node-backend-flask: 220 10% 55%;
+
     --node-datastore-influx: 175 70% 48%;
     --node-datastore-postgres: 45 90% 58%;
     --node-datastore-loki: 220 10% 60%;
+    --node-datastore-mysql: 200 80% 58%;
+    --node-datastore-mongo: 120 50% 48%;
+    --node-datastore-redis: 0 75% 55%;
+    --node-datastore-elastic: 48 90% 55%;
+    --node-datastore-cassandra: 210 30% 58%;
+    --node-datastore-dynamo: 30 90% 58%;
+    --node-datastore-sqlite: 210 50% 62%;
+    --node-datastore-neo4j: 200 70% 55%;
+    --node-datastore-cockroach: 265 45% 58%;
+    --node-datastore-supabase: 153 70% 50%;
+    --node-datastore-firebase: 35 95% 60%;
+    --node-datastore-planetscale: 220 15% 60%;
+
     --node-external-discord: 265 65% 65%;
     --node-external-n8n: 210 80% 60%;
     --node-external-slack: 155 65% 48%;
+    --node-external-stripe: 250 65% 65%;
+    --node-external-twilio: 0 70% 58%;
+    --node-external-sendgrid: 200 80% 55%;
+    --node-external-aws: 30 90% 55%;
+    --node-external-cloudflare: 30 95% 60%;
+    --node-external-github: 220 10% 60%;
+    --node-external-gitlab: 22 85% 58%;
+    --node-external-jira: 215 80% 62%;
+    --node-external-zapier: 25 90% 60%;
+    --node-external-webhook: 200 60% 55%;
+
+    --node-devops-docker: 205 80% 58%;
+    --node-devops-k8s: 215 75% 62%;
+    --node-devops-terraform: 265 55% 58%;
+    --node-devops-jenkins: 10 65% 52%;
+    --node-devops-gha: 220 10% 60%;
+    --node-devops-gitlab: 22 85% 58%;
+    --node-devops-argo: 200 70% 58%;
+    --node-devops-ansible: 0 65% 52%;
+    --node-devops-nginx: 142 65% 48%;
+    --node-devops-traefik: 200 75% 58%;
+    --node-devops-vault: 220 15% 60%;
+    --node-devops-consul: 340 60% 58%;
+
+    --node-messaging-kafka: 220 10% 60%;
+    --node-messaging-rabbit: 30 90% 60%;
+    --node-messaging-redis: 0 75% 55%;
+    --node-messaging-sqs: 30 90% 55%;
+    --node-messaging-nats: 200 80% 58%;
+    --node-messaging-pulsar: 265 55% 62%;
+    --node-messaging-eventbridge: 30 80% 55%;
+
+    --node-monitoring-grafana: 30 90% 58%;
+    --node-monitoring-prometheus: 15 85% 58%;
+    --node-monitoring-datadog: 265 55% 62%;
+    --node-monitoring-sentry: 350 60% 55%;
+    --node-monitoring-elk: 170 60% 48%;
+    --node-monitoring-jaeger: 200 70% 58%;
+    --node-monitoring-pagerduty: 142 65% 50%;
+    --node-monitoring-newrelic: 170 70% 48%;
+
+    --node-auth-keycloak: 210 60% 55%;
+    --node-auth-auth0: 15 80% 58%;
+    --node-auth-okta: 210 75% 62%;
+    --node-auth-firebase: 35 95% 60%;
+    --node-auth-clerk: 265 55% 62%;
+    --node-auth-supabase: 153 70% 50%;
 
     --canvas-bg: 222 28% 10%;
     --canvas-grid: 222 20% 16%;
