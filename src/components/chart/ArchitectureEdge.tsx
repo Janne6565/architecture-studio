@@ -139,7 +139,7 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
       />
       <EdgeLabelRenderer>
         <div
-          className={`absolute text-[10px] font-mono px-2 py-0.5 rounded-md border pointer-events-auto cursor-pointer transition-colors ${
+          className={`absolute text-[10px] w-20 text-center font-mono px-2 py-0.5 rounded-md border pointer-events-auto cursor-pointer transition-colors ${
             isDisabled ? 'opacity-40' : ''
           } ${
             selected
