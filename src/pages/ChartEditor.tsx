@@ -151,7 +151,7 @@ function ChartEditorInner() {
       ...connection,
       id: `e-${Date.now()}`,
       type: 'architecture',
-      data: { edgeType, description: '' },
+      data: { edgeType, description: '', direction: 'forward' },
     } as ArchEdge;
 
     setEdges(es => {

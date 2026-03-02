@@ -29,9 +29,12 @@ export interface NodeData {
   [key: string]: unknown;
 }
 
+export type EdgeDirection = 'forward' | 'reverse' | 'bidirectional' | 'none';
+
 export interface EdgeData {
   edgeType: EdgeType;
   description: string;
+  direction: EdgeDirection;
   [key: string]: unknown;
 }
 
