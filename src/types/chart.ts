@@ -38,6 +38,7 @@ export interface CustomEdgeTypeConfig {
 export interface NodeData {
   label: string;
   description: string;
+  url?: string;
   nodeType: string;
   [key: string]: unknown;
 }

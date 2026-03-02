@@ -5,7 +5,7 @@ const STORAGE_KEY = 'archflow-charts';
 
 function sanitizeNode(node: unknown) {
   const n = node as Record<string, unknown>;
-  const { measured, selected, dragging, resizing, width, height, ...rest } = n;
+  const { measured, selected, dragging, resizing, ...rest } = n;
   return rest;
 }
 

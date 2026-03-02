@@ -299,8 +299,10 @@ function ChartEditorInner() {
   }, [setNodes, setEdges, pushHistory]);
 
   const toggleDarkMode = useCallback(() => {
-    document.documentElement.classList.toggle('dark');
-    setDarkMode(d => !d);
+    const next = !document.documentElement.classList.contains('dark');
+    document.documentElement.classList.toggle('dark', next);
+    localStorage.setItem('archflow-theme', next ? 'dark' : 'light');
+    setDarkMode(next);
   }, []);
 
   if (!chart) {

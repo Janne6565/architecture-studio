@@ -39,7 +39,12 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
         </div>
         <div className="font-medium text-sm text-card-foreground truncate">{data.label}</div>
         {data.description && (
-          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">{data.description}</div>
+          <div className="text-xs text-muted-foreground mt-1 line-clamp-5">{data.description}</div>
+        )}
+        {data.url && (
+          <div className="text-[10px] font-mono text-muted-foreground/70 mt-1" title={data.url}>
+            🔗 {data.url.replace(/^https?:\/\//, '')}
+          </div>
         )}
       </div>
 

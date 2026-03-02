@@ -111,6 +111,15 @@ export default function PropertiesPanel({
               className="text-sm mt-1 min-h-[80px] resize-y"
             />
           </div>
+          <div>
+            <Label className="text-xs">URL</Label>
+            <Input
+              value={nodeData.url || ''}
+              onChange={e => onUpdateNode(selectedNode.id, { url: e.target.value })}
+              placeholder="https://..."
+              className="h-8 text-xs font-mono mt-1"
+            />
+          </div>
         </div>
         <div className="p-3 border-t">
           <Button
