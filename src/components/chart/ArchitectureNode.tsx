@@ -9,7 +9,7 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
 
   return (
     <div
-      className={`architecture-node rounded-lg border bg-card shadow-md transition-shadow ${
+      className={`architecture-node w-56 rounded-lg border bg-card shadow-md transition-shadow ${
         selected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-lg'
       }`}
       style={{ borderLeftWidth: '4px', borderLeftColor: `hsl(var(${colorVar}))` }}

@@ -3,17 +3,39 @@ import type { ChartData } from '@/types/chart';
 
 const STORAGE_KEY = 'archflow-charts';
 
+function sanitizeNode(node: unknown) {
+  const n = node as Record<string, unknown>;
+  const { measured, selected, dragging, resizing, width, height, ...rest } = n;
+  return rest;
+}
+
+function sanitizeEdge(edge: unknown) {
+  const e = edge as Record<string, unknown>;
+  const { selected, ...rest } = e;
+  return rest;
+}
+
+function sanitizeChart(chart: ChartData): ChartData {
+  return {
+    ...chart,
+    nodes: (Array.isArray(chart.nodes) ? chart.nodes : []).map(sanitizeNode) as ChartData['nodes'],
+    edges: (Array.isArray(chart.edges) ? chart.edges : []).map(sanitizeEdge) as ChartData['edges'],
+  };
+}
+
 function loadCharts(): ChartData[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.map((chart) => sanitizeChart(chart as ChartData));
   } catch {
     return [];
   }
 }
 
 function saveCharts(charts: ChartData[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(charts));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(charts.map(sanitizeChart)));
 }
 
 export function useChartStorage() {
@@ -50,7 +72,7 @@ export function useChartStorage() {
     const all = loadCharts();
     const idx = all.findIndex(c => c.id === id);
     if (idx === -1) return;
-    all[idx] = { ...all[idx], ...data, updatedAt: Date.now() };
+    all[idx] = sanitizeChart({ ...all[idx], ...data, updatedAt: Date.now() } as ChartData);
     saveCharts(all);
     setCharts(all);
   }, []);
