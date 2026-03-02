@@ -1,5 +1,6 @@
-import type { AnyNode, ArchEdge, EdgeDirection, EdgeType, NodeData, GroupNodeData } from '@/types/chart';
+import type { AnyNode, ArchEdge, EdgeDirection, NodeData, GroupNodeData } from '@/types/chart';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG } from '@/types/chart';
+import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -23,6 +24,7 @@ export default function PropertiesPanel({
   onUpdateNode, onUpdateEdge,
   onDeleteNode, onDeleteEdge, onUngroup, onClose,
 }: PropertiesPanelProps) {
+  const { customNodeTypes, customEdgeTypes } = useCustomTypesContext();
   if (!selectedNode && !selectedEdge) return null;
 
   if (selectedNode) {
@@ -72,13 +74,15 @@ export default function PropertiesPanel({
 
     const nodeData = selectedNode.data as NodeData;
     const config = NODE_TYPES_CONFIG.find(c => c.type === nodeData.nodeType);
+    const customConfig = !config ? customNodeTypes.find(c => c.id === nodeData.nodeType) : undefined;
+    const colorStyle = config ? `hsl(var(${config.colorVar}))` : customConfig?.color ?? 'hsl(var(--primary))';
     return (
       <div className="absolute top-3 right-3 z-40 w-64 rounded-xl border bg-card/95 backdrop-blur-md shadow-xl overflow-hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
         <div className="p-3 border-b flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span
               className="w-3 h-3 rounded-full"
-              style={{ backgroundColor: `hsl(var(${config?.colorVar}))` }}
+              style={{ backgroundColor: colorStyle }}
             />
             <h3 className="font-semibold text-xs">Node Properties</h3>
           </div>
@@ -88,7 +92,7 @@ export default function PropertiesPanel({
         </div>
         <div className="p-3 space-y-3">
           <div className="text-[10px] font-mono text-muted-foreground">
-            {config?.icon} {config?.label}
+            {config?.icon ?? customConfig?.icon} {config?.label ?? customConfig?.label}
           </div>
           <div>
             <Label className="text-xs">Label</Label>
@@ -124,6 +128,7 @@ export default function PropertiesPanel({
 
   if (selectedEdge) {
     const edgeConfig = EDGE_TYPES_CONFIG.find(c => c.type === selectedEdge.data?.edgeType);
+    const customEdgeCfg = !edgeConfig ? customEdgeTypes.find(c => c.id === selectedEdge.data?.edgeType) : undefined;
     const currentDirection = selectedEdge.data?.direction || 'forward';
     return (
       <div className="absolute top-3 right-3 z-40 w-64 rounded-xl border bg-card/95 backdrop-blur-md shadow-xl overflow-hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
@@ -138,7 +143,7 @@ export default function PropertiesPanel({
             <Label className="text-xs mb-1.5 block">Protocol</Label>
             <Select
               value={selectedEdge.data?.edgeType || 'rest'}
-              onValueChange={(value: EdgeType) => onUpdateEdge(selectedEdge.id, { edgeType: value })}
+              onValueChange={(value: string) => onUpdateEdge(selectedEdge.id, { edgeType: value })}
             >
               <SelectTrigger className="h-8 text-xs">
                 <SelectValue />
@@ -149,6 +154,15 @@ export default function PropertiesPanel({
                     {opt.label}
                   </SelectItem>
                 ))}
+                {customEdgeTypes.length > 0 && (
+                  <>
+                    {customEdgeTypes.map(opt => (
+                      <SelectItem key={opt.id} value={opt.id} className="text-xs">
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </>
+                )}
               </SelectContent>
             </Select>
           </div>

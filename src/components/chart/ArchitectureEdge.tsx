@@ -6,6 +6,7 @@ import {
   type EdgeProps,
 } from '@xyflow/react';
 import type { ArchEdge } from '@/types/chart';
+import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
 
 const EDGE_STYLES: Record<string, string> = {
   rest: '0',
@@ -28,6 +29,7 @@ const EDGE_LABELS: Record<string, string> = {
 };
 
 function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
+  const { customEdgeTypes } = useCustomTypesContext();
   const {
     id, source, target, sourceX, sourceY, targetX, targetY,
     sourcePosition, targetPosition, data, selected, style,
@@ -70,8 +72,8 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
   });
 
   const label = data?.description
-    ? `${EDGE_LABELS[edgeType]}: ${data.description}`
-    : EDGE_LABELS[edgeType];
+    ? `${EDGE_LABELS[edgeType] ?? customEdgeTypes.find(c => c.id === edgeType)?.label ?? edgeType}: ${data.description}`
+    : EDGE_LABELS[edgeType] ?? customEdgeTypes.find(c => c.id === edgeType)?.label ?? edgeType;
 
   const markerId = `arrow-${id}`;
   const markerStartId = `arrow-start-${id}`;
@@ -115,7 +117,12 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
         className="react-flow__edge-path"
         style={{
           ...style,
-          strokeDasharray: EDGE_STYLES[edgeType],
+          strokeDasharray: EDGE_STYLES[edgeType] ?? (() => {
+            const cp = customEdgeTypes.find(c => c.id === edgeType)?.dashPattern;
+            if (cp === 'dashed') return '8 4';
+            if (cp === 'dotted') return '3 3';
+            return '0';
+          })(),
           stroke: strokeColor,
           strokeWidth: selected ? 2.5 : 1.5,
           opacity: isDisabled ? 0.3 : 1,

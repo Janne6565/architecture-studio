@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { NODE_TYPES_CONFIG, CATEGORY_LABELS, EDGE_TYPES_CONFIG } from '@/types/chart';
-import type { NodeType, EdgeType, NodeCategory } from '@/types/chart';
+import type { NodeCategory } from '@/types/chart';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 
 interface NodePaletteProps {
-  onAddNode: (type: NodeType) => void;
-  selectedEdgeType: EdgeType;
-  onEdgeTypeChange: (type: EdgeType) => void;
+  onAddNode: (type: string) => void;
+  selectedEdgeType: string;
+  onEdgeTypeChange: (type: string) => void;
 }
 
 export default function NodePalette({ onAddNode, selectedEdgeType, onEdgeTypeChange }: NodePaletteProps) {

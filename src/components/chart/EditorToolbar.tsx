@@ -10,6 +10,7 @@ import {
   DropdownMenuItem, DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import CustomTypesDialog from '@/components/chart/CustomTypesDialog';
 
 interface EditorToolbarProps {
   chartName: string;
@@ -157,6 +158,10 @@ export default function EditorToolbar({
       <Button variant="ghost" size="icon" className="h-7 w-7" onClick={onClear} title="Clear Canvas">
         <Trash2 className="h-3.5 w-3.5" />
       </Button>
+
+      <Separator orientation="vertical" className="h-5 mx-1" />
+
+      <CustomTypesDialog />
 
       <div className="flex-1" />
 

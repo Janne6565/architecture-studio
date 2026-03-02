@@ -1,5 +1,6 @@
 import type { AnyNode, NodeData } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
+import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
 import { Trash2, X, Group } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -16,6 +17,7 @@ export default function SelectionActions({
   onClearSelection,
   onGroupNodes,
 }: SelectionActionsProps) {
+  const { customNodeTypes } = useCustomTypesContext();
   if (selectedNodes.length < 2) return null;
 
   const nonGroupNodes = selectedNodes.filter(n => n.type !== 'group');
@@ -35,6 +37,9 @@ export default function SelectionActions({
           const config = isGroup
             ? null
             : NODE_TYPES_CONFIG.find(c => c.type === (node.data as NodeData).nodeType);
+          const customCfg = !isGroup && !config
+            ? customNodeTypes.find(c => c.id === (node.data as NodeData).nodeType)
+            : undefined;
           return (
             <div key={node.id} className="flex items-center gap-2 px-2 py-1 text-xs">
               {isGroup ? (
@@ -42,7 +47,7 @@ export default function SelectionActions({
               ) : (
                 <span
                   className="w-2 h-2 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: config ? `hsl(var(${config.colorVar}))` : undefined }}
+                  style={{ backgroundColor: config ? `hsl(var(${config.colorVar}))` : customCfg?.color ?? undefined }}
                 />
               )}
               <span className="truncate max-w-[140px]">{node.data.label as string}</span>

@@ -2,33 +2,40 @@ import { memo } from 'react';
 import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ArchNode } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
+import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
 
 function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
+  const { customNodeTypes } = useCustomTypesContext();
   const config = NODE_TYPES_CONFIG.find(c => c.type === data.nodeType);
-  const colorVar = config?.colorVar || '--primary';
+  const customConfig = !config ? customNodeTypes.find(c => c.id === data.nodeType) : undefined;
+  const colorStyle = config ? `hsl(var(${config.colorVar}))` : customConfig?.color ?? 'hsl(var(--primary))';
+  const icon = config?.icon ?? customConfig?.icon;
+  const typeLabel = config?.label ?? customConfig?.label;
 
   return (
     <div
       className={`architecture-node w-56 rounded-lg border bg-card shadow-md transition-shadow ${
         selected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-lg'
       }`}
-      style={{ borderLeftWidth: '4px', borderLeftColor: `hsl(var(${colorVar}))` }}
+      style={{ borderLeftWidth: '4px', borderLeftColor: colorStyle }}
     >
       <Handle type="target" position={Position.Top} id="top" className="!-top-1" />
       <Handle type="target" position={Position.Left} id="left" className="!-left-1" />
 
       <div className="px-3 py-2.5">
         <div className="flex items-center gap-2 mb-1">
-          <span className="text-base">{config?.icon}</span>
-          <span
-            className="text-[10px] font-mono font-medium uppercase tracking-wider px-1.5 py-0.5 rounded"
-            style={{
-              backgroundColor: `hsl(var(${colorVar}) / 0.15)`,
-              color: `hsl(var(${colorVar}))`,
-            }}
-          >
-            {config?.label}
-          </span>
+          <span className="text-base">{icon}</span>
+          {typeLabel && (
+            <span
+              className="text-[10px] font-mono font-medium uppercase tracking-wider px-1.5 py-0.5 rounded"
+              style={{
+                backgroundColor: config ? `hsl(var(${config.colorVar}) / 0.15)` : customConfig ? `${customConfig.color}26` : undefined,
+                color: colorStyle,
+              }}
+            >
+              {typeLabel}
+            </span>
+          )}
         </div>
         <div className="font-medium text-sm text-card-foreground truncate">{data.label}</div>
         {data.description && (

@@ -14,9 +14,10 @@ import {
   BackgroundVariant,
   SelectionMode,
 } from '@xyflow/react';
-import type { AnyNode, ArchNode, ArchEdge, GroupNode, NodeType, EdgeType } from '@/types/chart';
+import type { AnyNode, ArchNode, ArchEdge, GroupNode } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
 import { useChartStorage } from '@/hooks/useChartStorage';
+import { CustomTypesProvider, useCustomTypesContext } from '@/contexts/CustomTypesContext';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import ArchitectureNode from '@/components/chart/ArchitectureNode';
 import GroupNodeComponent from '@/components/chart/GroupNode';
@@ -38,7 +39,8 @@ function ChartEditorInner() {
   const { chartId } = useParams<{ chartId: string }>();
   const navigate = useNavigate();
   const { getChart, updateChart } = useChartStorage();
-  const [edgeType, setEdgeType] = useState<EdgeType>('rest');
+  const { customNodeTypes } = useCustomTypesContext();
+  const [edgeType, setEdgeType] = useState<string>('rest');
   const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
   const [shiftHeld, setShiftHeld] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -167,14 +169,16 @@ function ChartEditorInner() {
     if (significant) setTimeout(() => pushCurrentState(), 0);
   }, [onNodesChange, pushCurrentState]);
 
-  const onAddNode = useCallback((type: NodeType) => {
-    const config = NODE_TYPES_CONFIG.find(c => c.type === type)!;
+  const onAddNode = useCallback((type: string) => {
+    const builtIn = NODE_TYPES_CONFIG.find(c => c.type === type);
+    const custom = !builtIn ? customNodeTypes.find(c => c.id === type) : undefined;
+    const label = builtIn?.label ?? custom?.label ?? type;
     const newNode: ArchNode = {
       id: `node-${Date.now()}`,
       type: 'architecture',
       position: { x: 100 + Math.random() * 600, y: 100 + Math.random() * 400 },
       data: {
-        label: config.label,
+        label,
         description: '',
         nodeType: type,
       },
@@ -185,7 +189,7 @@ function ChartEditorInner() {
       setTimeout(() => pushCurrentState(updated, undefined), 0);
       return updated;
     });
-  }, [setNodes, pushCurrentState]);
+  }, [setNodes, pushCurrentState, customNodeTypes]);
 
   const onUpdateNode = useCallback((id: string, data: Record<string, unknown>) => {
     setNodes(ns => ns.map(n => n.id === id ? { ...n, data: { ...n.data, ...data } } as AnyNode : n));
@@ -379,8 +383,11 @@ function ChartEditorInner() {
             <Controls />
             <MiniMap
               nodeColor={(n) => {
-                const config = NODE_TYPES_CONFIG.find(c => c.type === (n.data as ArchNode['data'])?.nodeType);
-                return config ? `hsl(var(${config.colorVar}))` : 'hsl(var(--muted))';
+                const nodeType = (n.data as ArchNode['data'])?.nodeType;
+                const config = NODE_TYPES_CONFIG.find(c => c.type === nodeType);
+                if (config) return `hsl(var(${config.colorVar}))`;
+                const customCfg = customNodeTypes.find(c => c.id === nodeType);
+                return customCfg?.color ?? 'hsl(var(--muted))';
               }}
               zoomable
               pannable
@@ -427,8 +434,10 @@ function ChartEditorInner() {
 
 export default function ChartEditor() {
   return (
-    <ReactFlowProvider>
-      <ChartEditorInner />
-    </ReactFlowProvider>
+    <CustomTypesProvider>
+      <ReactFlowProvider>
+        <ChartEditorInner />
+      </ReactFlowProvider>
+    </CustomTypesProvider>
   );
 }

@@ -22,17 +22,30 @@ export type NodeType =
 
 export type EdgeType = 'rest' | 'websocket' | 'webhook' | 'grpc' | 'graphql' | 'mqtt' | 'amqp';
 
+export interface CustomNodeTypeConfig {
+  id: string;
+  label: string;
+  icon: string;
+  color: string;
+}
+
+export interface CustomEdgeTypeConfig {
+  id: string;
+  label: string;
+  dashPattern: 'solid' | 'dashed' | 'dotted';
+}
+
 export interface NodeData {
   label: string;
   description: string;
-  nodeType: NodeType;
+  nodeType: string;
   [key: string]: unknown;
 }
 
 export type EdgeDirection = 'forward' | 'reverse' | 'bidirectional' | 'none';
 
 export interface EdgeData {
-  edgeType: EdgeType;
+  edgeType: string;
   description: string;
   direction: EdgeDirection;
   [key: string]: unknown;
