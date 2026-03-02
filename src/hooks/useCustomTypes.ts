@@ -69,6 +69,20 @@ export function useCustomTypes() {
     setCustomEdgeTypes(prev => prev.filter(t => t.id !== id));
   }, []);
 
+  const importTypes = useCallback((nodeTypes: CustomNodeTypeConfig[], edgeTypes: CustomEdgeTypeConfig[]) => {
+    // Merge imported types with existing, avoiding duplicate IDs
+    setCustomNodeTypes(prev => {
+      const existingIds = new Set(prev.map(t => t.id));
+      const newOnes = nodeTypes.filter(t => !existingIds.has(t.id));
+      return [...prev, ...newOnes];
+    });
+    setCustomEdgeTypes(prev => {
+      const existingIds = new Set(prev.map(t => t.id));
+      const newOnes = edgeTypes.filter(t => !existingIds.has(t.id));
+      return [...prev, ...newOnes];
+    });
+  }, []);
+
   return {
     customNodeTypes,
     customEdgeTypes,
@@ -78,5 +92,6 @@ export function useCustomTypes() {
     addEdgeType,
     updateEdgeType,
     deleteEdgeType,
+    importTypes,
   };
 }

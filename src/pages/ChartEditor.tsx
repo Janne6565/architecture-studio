@@ -39,7 +39,7 @@ function ChartEditorInner() {
   const { chartId } = useParams<{ chartId: string }>();
   const navigate = useNavigate();
   const { getChart, updateChart } = useChartStorage();
-  const { customNodeTypes } = useCustomTypesContext();
+  const { customNodeTypes, customEdgeTypes, importTypes } = useCustomTypesContext();
   const [edgeType, setEdgeType] = useState<string>('rest');
   const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains('dark'));
   const [shiftHeld, setShiftHeld] = useState(false);
@@ -281,8 +281,13 @@ function ChartEditorInner() {
   }, [setNodes, setEdges, pushHistory]);
 
   const onExportJson = useCallback(() => {
-    return JSON.stringify({ nodes, edges }, null, 2);
-  }, [nodes, edges]);
+    return JSON.stringify({
+      nodes,
+      edges,
+      customNodeTypes,
+      customEdgeTypes,
+    }, null, 2);
+  }, [nodes, edges, customNodeTypes, customEdgeTypes]);
 
   const onImportJson = useCallback((json: string) => {
     try {
@@ -291,12 +296,19 @@ function ChartEditorInner() {
         setNodes(data.nodes);
         setEdges(data.edges);
         pushHistory({ nodes: data.nodes, edges: data.edges });
+        // Import custom types if present
+        if (Array.isArray(data.customNodeTypes) || Array.isArray(data.customEdgeTypes)) {
+          importTypes(
+            Array.isArray(data.customNodeTypes) ? data.customNodeTypes : [],
+            Array.isArray(data.customEdgeTypes) ? data.customEdgeTypes : [],
+          );
+        }
         toast.success('Diagram imported');
       }
     } catch {
       toast.error('Invalid JSON file');
     }
-  }, [setNodes, setEdges, pushHistory]);
+  }, [setNodes, setEdges, pushHistory, importTypes]);
 
   const toggleDarkMode = useCallback(() => {
     const next = !document.documentElement.classList.contains('dark');
