@@ -20,7 +20,8 @@ import { useChartStorage } from '@/hooks/useChartStorage';
 import { useUndoRedo } from '@/hooks/useUndoRedo';
 import ArchitectureNode from '@/components/chart/ArchitectureNode';
 import ArchitectureEdge from '@/components/chart/ArchitectureEdge';
-import NodePalette from '@/components/chart/NodePalette';
+import FloatingToolbar from '@/components/chart/FloatingToolbar';
+import LayersPanel from '@/components/chart/LayersPanel';
 import PropertiesPanel from '@/components/chart/PropertiesPanel';
 import EditorToolbar from '@/components/chart/EditorToolbar';
 import { ArrowLeft } from 'lucide-react';
@@ -268,13 +269,17 @@ function ChartEditorInner() {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        <NodePalette
-          onAddNode={onAddNode}
-          selectedEdgeType={edgeType}
-          onEdgeTypeChange={setEdgeType}
-        />
-
-        <div className="flex-1">
+        <div className="flex-1 relative">
+          <LayersPanel
+            nodes={nodes}
+            edges={edges}
+            selectedNodeId={selectedNodeId}
+            selectedEdgeId={selectedEdgeId}
+            onSelectNode={(id) => { setSelectedNodeId(id); setSelectedEdgeId(null); }}
+            onSelectEdge={(id) => { setSelectedEdgeId(id); setSelectedNodeId(null); }}
+            onDeleteNode={onDeleteNode}
+            onDeleteEdge={onDeleteEdge}
+          />
           <ReactFlow
             nodes={nodes}
             edges={edges}
@@ -302,6 +307,12 @@ function ChartEditorInner() {
               pannable
             />
           </ReactFlow>
+
+          <FloatingToolbar
+            onAddNode={onAddNode}
+            selectedEdgeType={edgeType}
+            onEdgeTypeChange={setEdgeType}
+          />
         </div>
 
         <PropertiesPanel
