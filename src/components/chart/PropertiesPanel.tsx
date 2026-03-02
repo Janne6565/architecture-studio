@@ -1,10 +1,10 @@
-import type { ArchNode, ArchEdge } from '@/types/chart';
+import type { ArchNode, ArchEdge, EdgeDirection } from '@/types/chart';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG } from '@/types/chart';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, ArrowRight, ArrowLeftRight, ArrowLeft, Ban } from 'lucide-react';
 
 interface PropertiesPanelProps {
   selectedNode?: ArchNode | null;
@@ -77,6 +77,7 @@ export default function PropertiesPanel({
 
   if (selectedEdge) {
     const edgeConfig = EDGE_TYPES_CONFIG.find(c => c.type === selectedEdge.data?.edgeType);
+    const currentDirection = selectedEdge.data?.direction || 'forward';
     return (
       <div className="absolute top-3 right-3 z-40 w-64 rounded-xl border bg-card/95 backdrop-blur-md shadow-xl overflow-hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
         <div className="p-3 border-b flex items-center justify-between">
@@ -89,6 +90,33 @@ export default function PropertiesPanel({
           <div className="text-[10px] font-mono text-muted-foreground">
             Type: {edgeConfig?.label}
           </div>
+
+          <div>
+            <Label className="text-xs mb-1.5 block">Direction</Label>
+            <div className="grid grid-cols-4 gap-1">
+              {([
+                { value: 'forward' as EdgeDirection, icon: <ArrowRight className="h-3.5 w-3.5" />, label: 'Forward' },
+                { value: 'reverse' as EdgeDirection, icon: <ArrowLeft className="h-3.5 w-3.5" />, label: 'Reverse' },
+                { value: 'bidirectional' as EdgeDirection, icon: <ArrowLeftRight className="h-3.5 w-3.5" />, label: 'Both' },
+                { value: 'none' as EdgeDirection, icon: <Ban className="h-3.5 w-3.5" />, label: 'None' },
+              ]).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => onUpdateEdge(selectedEdge.id, { direction: opt.value })}
+                  title={opt.label}
+                  className={`flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[10px] transition-colors ${
+                    currentDirection === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-accent text-muted-foreground'
+                  }`}
+                >
+                  {opt.icon}
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div>
             <Label className="text-xs">Description</Label>
             <Textarea
