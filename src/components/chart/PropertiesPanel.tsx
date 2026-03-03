@@ -137,11 +137,9 @@ function NodeProperties({
                       </SelectItem>
                     ))}
                   </div>
-                )}
-                  </SelectItem>
-                </div>
               </SelectContent>
             </Select>
+          </div>
           </div>
           <div>
             <Label className="text-xs">Label</Label>
