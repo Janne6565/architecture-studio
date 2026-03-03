@@ -24,7 +24,9 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
       style={{ borderLeftWidth: '4px', borderLeftColor: colorStyle }}
     >
       <Handle type="target" position={Position.Top} id="top" className="!-top-1" />
+      <Handle type="source" position={Position.Top} id="top-src" className="!-top-1" />
       <Handle type="target" position={Position.Left} id="left" className="!-left-1" />
+      <Handle type="source" position={Position.Left} id="left-src" className="!-left-1" />
 
       {styleType === 'locked' && (
         <div className="absolute -top-2.5 -right-2.5 z-10 w-5 h-5 rounded-full bg-muted border flex items-center justify-center">
@@ -55,7 +57,7 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
         </div>
         <div className="font-medium text-sm text-card-foreground truncate">{data.label}</div>
         {data.description && (
-          <div className="text-xs text-muted-foreground mt-1">{data.description}</div>
+          <div className="text-xs text-muted-foreground mt-1 whitespace-pre-line">{data.description}</div>
         )}
         {data.url && (
           <div className="text-[10px] font-mono text-muted-foreground/70 mt-1" title={data.url}>
@@ -65,7 +67,9 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
       </div>
 
       <Handle type="source" position={Position.Bottom} id="bottom" className="!-bottom-1" />
+      <Handle type="target" position={Position.Bottom} id="bottom-tgt" className="!-bottom-1" />
       <Handle type="source" position={Position.Right} id="right" className="!-right-1" />
+      <Handle type="target" position={Position.Right} id="right-tgt" className="!-right-1" />
     </div>
   );
 }
