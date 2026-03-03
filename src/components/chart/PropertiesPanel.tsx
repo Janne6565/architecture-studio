@@ -109,6 +109,11 @@ function NodeProperties({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent className="max-h-60">
+                <div className="border-b mb-1 pb-1">
+                  <SelectItem value="__create_custom__" className="text-xs text-primary font-medium">
+                    <Plus className="h-3 w-3 mr-1 inline" /> Create Custom...
+                  </SelectItem>
+                </div>
                 {(Object.entries(groupedBuiltIn) as [NodeCategory, typeof NODE_TYPES_CONFIG][]).map(([cat, items]) => (
                   <div key={cat}>
                     <div className="px-2 py-1 text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
@@ -133,9 +138,6 @@ function NodeProperties({
                     ))}
                   </div>
                 )}
-                <div className="border-t mt-1 pt-1">
-                  <SelectItem value="__create_custom__" className="text-xs text-primary font-medium">
-                    <Plus className="h-3 w-3 mr-1 inline" /> Create Custom...
                   </SelectItem>
                 </div>
               </SelectContent>
@@ -219,6 +221,11 @@ function EdgeProperties({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <div className="border-b mb-1 pb-1">
+                  <SelectItem value="__create_custom__" className="text-xs text-primary font-medium">
+                    <Plus className="h-3 w-3 mr-1 inline" /> Create Custom...
+                  </SelectItem>
+                </div>
                 {EDGE_TYPES_CONFIG.map(opt => (
                   <SelectItem key={opt.type} value={opt.type} className="text-xs">
                     {opt.label}
@@ -233,11 +240,6 @@ function EdgeProperties({
                     ))}
                   </>
                 )}
-                <div className="border-t mt-1 pt-1">
-                  <SelectItem value="__create_custom__" className="text-xs text-primary font-medium">
-                    <Plus className="h-3 w-3 mr-1 inline" /> Create Custom...
-                  </SelectItem>
-                </div>
               </SelectContent>
             </Select>
           </div>
