@@ -240,15 +240,13 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
                     </div>
                   )}
                   <div className="pt-1 mt-1 border-t">
-                    <CustomTypesDialog
-                      defaultTab="nodes"
-                      trigger={
-                        <button className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-primary hover:bg-accent transition-colors text-left">
-                          <Plus className="h-3.5 w-3.5" />
-                          Create new type...
-                        </button>
-                      }
-                    />
+                    <button
+                      onClick={() => { setCustomDialogTab('nodes'); setCustomDialogOpen(true); }}
+                      className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-primary hover:bg-accent transition-colors text-left"
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                      Create new type...
+                    </button>
                   </div>
                 </>
               ) : activeCategory !== 'connections' ? (
@@ -329,15 +327,13 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
                       </button>
                     ))}
                     <div className="pt-1 mt-1 border-t">
-                      <CustomTypesDialog
-                        defaultTab="edges"
-                        trigger={
-                          <button className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-primary hover:bg-accent transition-colors text-left">
-                            <Plus className="h-3.5 w-3.5" />
-                            Create new connection type...
-                          </button>
-                        }
-                      />
+                      <button
+                        onClick={() => { setCustomDialogTab('edges'); setCustomDialogOpen(true); }}
+                        className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-primary hover:bg-accent transition-colors text-left"
+                      >
+                        <Plus className="h-3.5 w-3.5" />
+                        Create new connection type...
+                      </button>
                     </div>
                   </>
                 ) : (
