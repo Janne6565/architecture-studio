@@ -405,6 +405,7 @@ export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTyp
           })}
         </div>
       </div>
+      <CustomTypesDialog open={customDialogOpen} onOpenChange={setCustomDialogOpen} defaultTab={customDialogTab} />
     </div>
   );
 }
