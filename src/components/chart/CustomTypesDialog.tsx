@@ -102,13 +102,15 @@ const DASH_OPTIONS: { value: CustomEdgeTypeConfig['dashPattern']; label: string;
 function EdgeTypeForm({ onSubmit }: { onSubmit: (cfg: Omit<CustomEdgeTypeConfig, 'id'>) => void }) {
   const [label, setLabel] = useState('');
   const [dashPattern, setDashPattern] = useState<CustomEdgeTypeConfig['dashPattern']>('solid');
+  const [color, setColor] = useState('#6b7280');
 
   const handleAdd = () => {
     const trimmed = label.trim();
     if (!trimmed) return;
-    onSubmit({ label: trimmed, dashPattern });
+    onSubmit({ label: trimmed, dashPattern, color });
     setLabel('');
     setDashPattern('solid');
+    setColor('#6b7280');
   };
 
   return (
@@ -134,6 +136,10 @@ function EdgeTypeForm({ onSubmit }: { onSubmit: (cfg: Omit<CustomEdgeTypeConfig,
           ))}
         </div>
       </div>
+      <div className="w-10">
+        <Label className="text-xs">Color</Label>
+        <input type="color" value={color} onChange={e => setColor(e.target.value)} className="mt-1 h-8 w-full cursor-pointer rounded border bg-transparent p-0.5" />
+      </div>
       <Button size="sm" className="h-8" onClick={handleAdd} disabled={!label.trim()}>
         <Plus className="h-3.5 w-3.5 mr-1" /> Add
       </Button>
@@ -151,9 +157,10 @@ function EdgeTypeRow({
   const [editing, setEditing] = useState(false);
   const [label, setLabel] = useState(item.label);
   const [dashPattern, setDashPattern] = useState(item.dashPattern);
+  const [color, setColor] = useState(item.color ?? '#6b7280');
 
   const save = () => {
-    onUpdate(item.id, { label: label.trim() || item.label, dashPattern });
+    onUpdate(item.id, { label: label.trim() || item.label, dashPattern, color });
     setEditing(false);
   };
 
@@ -174,6 +181,7 @@ function EdgeTypeRow({
             </button>
           ))}
         </div>
+        <input type="color" value={color} onChange={e => setColor(e.target.value)} className="h-7 w-8 cursor-pointer rounded border bg-transparent p-0.5" />
         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={save}>Save</Button>
         <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => setEditing(false)}>Cancel</Button>
       </div>
@@ -184,8 +192,9 @@ function EdgeTypeRow({
 
   return (
     <div className="flex items-center gap-2 rounded-lg px-2 py-1.5 hover:bg-muted group">
+      <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color ?? '#6b7280' }} />
       <span className="w-6 flex justify-center">
-        <span className="block w-5 border-t-2" style={{ borderStyle: dashCss }} />
+        <span className="block w-5 border-t-2" style={{ borderStyle: dashCss, borderColor: item.color ?? undefined }} />
       </span>
       <span className="text-xs font-medium flex-1 truncate">{item.label}</span>
       <button onClick={() => setEditing(true)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground">

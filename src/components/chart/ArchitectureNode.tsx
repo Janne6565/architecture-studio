@@ -3,6 +3,7 @@ import { Handle, Position, type NodeProps } from '@xyflow/react';
 import type { ArchNode } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
 import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
+import { Lock } from 'lucide-react';
 
 function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
   const { customNodeTypes } = useCustomTypesContext();
@@ -11,16 +12,31 @@ function ArchitectureNode({ data, selected }: NodeProps<ArchNode>) {
   const colorStyle = config ? `hsl(var(${config.colorVar}))` : customConfig?.color ?? 'hsl(var(--primary))';
   const icon = config?.icon ?? customConfig?.icon;
   const typeLabel = config?.label ?? customConfig?.label;
+  const styleType = data.styleType || 'default';
+  const isDisabledOrLocked = styleType === 'disabled' || styleType === 'locked';
+  const isExample = styleType === 'example';
 
   return (
     <div
       className={`architecture-node w-56 rounded-lg border bg-card shadow-md transition-shadow ${
         selected ? 'ring-2 ring-primary shadow-lg' : 'hover:shadow-lg'
-      }`}
+      } ${isDisabledOrLocked ? 'opacity-50 saturate-0' : ''} ${isExample ? 'border-dashed opacity-80' : ''}`}
       style={{ borderLeftWidth: '4px', borderLeftColor: colorStyle }}
     >
       <Handle type="target" position={Position.Top} id="top" className="!-top-1" />
       <Handle type="target" position={Position.Left} id="left" className="!-left-1" />
+
+      {styleType === 'locked' && (
+        <div className="absolute -top-2.5 -right-2.5 z-10 w-5 h-5 rounded-full bg-muted border flex items-center justify-center">
+          <Lock className="h-2.5 w-2.5 text-muted-foreground" />
+        </div>
+      )}
+
+      {isExample && (
+        <div className="absolute -top-2 right-2 z-10 px-1.5 py-0 rounded text-[9px] font-mono italic bg-muted border text-muted-foreground">
+          e.g.
+        </div>
+      )}
 
       <div className="px-3 py-2.5">
         <div className="flex items-center gap-2 mb-1">

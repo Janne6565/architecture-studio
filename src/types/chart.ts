@@ -33,13 +33,17 @@ export interface CustomEdgeTypeConfig {
   id: string;
   label: string;
   dashPattern: 'solid' | 'dashed' | 'dotted';
+  color?: string;
 }
+
+export type NodeStyleType = 'default' | 'disabled' | 'locked' | 'example';
 
 export interface NodeData {
   label: string;
   description: string;
   url?: string;
   nodeType: string;
+  styleType?: NodeStyleType;
   [key: string]: unknown;
 }
 
@@ -50,6 +54,7 @@ export interface EdgeData {
   description: string;
   direction: EdgeDirection;
   labelPosition?: number; // 0–1 ratio along edge path, default 0.5
+  labelWidth?: number; // px width of the label chip, default 80
   [key: string]: unknown;
 }
 

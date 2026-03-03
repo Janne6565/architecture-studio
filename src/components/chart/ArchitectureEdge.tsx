@@ -44,7 +44,8 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
   const direction = data?.direction || 'forward';
   const edgeType = data?.edgeType || 'rest';
   const labelPosition = data?.labelPosition ?? 0.5;
-  const strokeColor = selected ? 'hsl(var(--primary))' : 'hsl(var(--muted-foreground))';
+  const customEdgeColor = customEdgeTypes.find(c => c.id === edgeType)?.color;
+  const strokeColor = selected ? 'hsl(var(--primary))' : (customEdgeColor ?? 'hsl(var(--muted-foreground))');
   const isDisabled = direction === 'none';
   const isReverse = direction === 'reverse';
 
@@ -225,10 +226,11 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
       />
       <EdgeLabelRenderer>
         <div
+          lang="en"
           onPointerDown={onLabelPointerDown}
           onPointerMove={onLabelPointerMove}
           onPointerUp={onLabelPointerUp}
-          className={`absolute text-[10px] w-20 text-center font-mono px-2 py-0.5 rounded-md border pointer-events-auto select-none transition-colors ${
+          className={`absolute text-[10px] text-center font-mono px-2 py-0.5 rounded-md border pointer-events-auto select-none transition-colors break-words hyphens-auto ${
             dragging.current ? 'cursor-grabbing' : 'cursor-grab'
           } ${
             isDisabled ? 'opacity-40' : ''
@@ -238,6 +240,7 @@ function ArchitectureEdge(props: EdgeProps<ArchEdge>) {
               : 'bg-background text-foreground border-border shadow-sm'
           }`}
           style={{
+            width: data?.labelWidth ?? 80,
             transform: `translate(-50%, -50%) translate(${labelPoint.x}px, ${labelPoint.y}px)`,
             zIndex: 1000,
           }}

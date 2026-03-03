@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { AnyNode, ArchEdge, EdgeDirection, NodeData, GroupNodeData } from '@/types/chart';
+import type { AnyNode, ArchEdge, EdgeDirection, NodeData, NodeStyleType, GroupNodeData } from '@/types/chart';
 import { NODE_TYPES_CONFIG, EDGE_TYPES_CONFIG, CATEGORY_LABELS } from '@/types/chart';
 import type { NodeCategory } from '@/types/chart';
 import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trash2, X, ArrowRight, ArrowLeftRight, ArrowLeft, Ban, Group, Plus } from 'lucide-react';
+import { Trash2, X, ArrowRight, ArrowLeftRight, ArrowLeft, Ban, Group, Plus, Lock, CircleDashed, FlaskConical } from 'lucide-react';
 import CustomTypesDialog from './CustomTypesDialog';
 
 // ---------- Group properties ----------
@@ -167,6 +167,32 @@ function NodeProperties({
               className="h-8 text-xs font-mono mt-1"
             />
           </div>
+
+          <div>
+            <Label className="text-xs mb-1.5 block">Style</Label>
+            <div className="grid grid-cols-4 gap-1">
+              {([
+                { value: 'default' as NodeStyleType, icon: <CircleDashed className="h-3.5 w-3.5" />, label: 'Default' },
+                { value: 'disabled' as NodeStyleType, icon: <Ban className="h-3.5 w-3.5" />, label: 'Disabled' },
+                { value: 'locked' as NodeStyleType, icon: <Lock className="h-3.5 w-3.5" />, label: 'Locked' },
+                { value: 'example' as NodeStyleType, icon: <FlaskConical className="h-3.5 w-3.5" />, label: 'Example' },
+              ]).map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => onUpdateNode(node.id, { styleType: opt.value })}
+                  title={opt.label}
+                  className={`flex flex-col items-center gap-0.5 py-1.5 rounded-lg text-[10px] transition-colors ${
+                    (nodeData.styleType || 'default') === opt.value
+                      ? 'bg-primary text-primary-foreground'
+                      : 'bg-muted hover:bg-accent text-muted-foreground'
+                  }`}
+                >
+                  {opt.icon}
+                  <span>{opt.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
         <div className="p-3 border-t">
           <Button variant="destructive" size="sm" className="w-full h-8 text-xs" onClick={() => onDeleteNode(node.id)}>
@@ -197,7 +223,13 @@ function EdgeProperties({
     <>
       <div className="absolute top-3 right-3 z-40 w-64 rounded-xl border bg-card/95 backdrop-blur-md shadow-xl overflow-hidden animate-in fade-in-0 slide-in-from-right-2 duration-150">
         <div className="p-3 border-b flex items-center justify-between">
-          <h3 className="font-semibold text-xs">Edge Properties</h3>
+          <div className="flex items-center gap-2">
+            {(() => {
+              const customColor = customEdgeTypes.find(c => c.id === (edge.data?.edgeType || 'rest'))?.color;
+              return customColor ? <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: customColor }} /> : null;
+            })()}
+            <h3 className="font-semibold text-xs">Edge Properties</h3>
+          </div>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
             <X className="h-3.5 w-3.5" />
           </button>
@@ -276,6 +308,21 @@ function EdgeProperties({
               placeholder="Add a description..."
               className="text-sm mt-1 min-h-[80px] resize-y"
             />
+          </div>
+
+          <div>
+            <Label className="text-xs">Label Width</Label>
+            <div className="flex items-center gap-2 mt-1">
+              <input
+                type="range"
+                min={50}
+                max={200}
+                value={edge.data?.labelWidth ?? 80}
+                onChange={e => onUpdateEdge(edge.id, { labelWidth: Number(e.target.value) })}
+                className="flex-1 h-2 accent-primary"
+              />
+              <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">{edge.data?.labelWidth ?? 80}</span>
+            </div>
           </div>
         </div>
         <div className="p-3 border-t">
