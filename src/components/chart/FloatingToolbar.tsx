@@ -44,6 +44,8 @@ const CATEGORY_ICONS: Record<ToolbarCategory, React.ReactNode> = {
 export default function FloatingToolbar({ onAddNode, selectedEdgeType, onEdgeTypeChange }: FloatingToolbarProps) {
   const { customNodeTypes, customEdgeTypes } = useCustomTypesContext();
   const [activeCategory, setActiveCategory] = useState<ToolbarCategory | null>(null);
+  const [customDialogOpen, setCustomDialogOpen] = useState(false);
+  const [customDialogTab, setCustomDialogTab] = useState<'nodes' | 'edges'>('nodes');
   const [search, setSearch] = useState('');
   const popoverRef = useRef<HTMLDivElement>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
