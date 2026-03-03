@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCustomTypesContext } from '@/contexts/CustomTypesContext';
 import type { CustomNodeTypeConfig, CustomEdgeTypeConfig } from '@/types/chart';
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
+  Dialog, DialogContent, DialogHeader, DialogTitle,
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -203,25 +203,30 @@ function EdgeTypeRow({
 interface CustomTypesDialogProps {
   trigger?: React.ReactNode;
   defaultTab?: 'nodes' | 'edges';
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export default function CustomTypesDialog({ trigger, defaultTab = 'nodes' }: CustomTypesDialogProps) {
+export default function CustomTypesDialog({ trigger, defaultTab = 'nodes', open, onOpenChange }: CustomTypesDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
   const {
     customNodeTypes, customEdgeTypes,
     addNodeType, updateNodeType, deleteNodeType,
     addEdgeType, updateEdgeType, deleteEdgeType,
   } = useCustomTypesContext();
 
+  const isControlled = open !== undefined;
+  const isOpen = isControlled ? open : internalOpen;
+  const setIsOpen = isControlled ? (onOpenChange ?? (() => {})) : setInternalOpen;
+
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        {trigger ?? (
-          <Button variant="ghost" size="icon" className="h-7 w-7" title="Custom Types">
-            <Shapes className="h-3.5 w-3.5" />
-          </Button>
-        )}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      {trigger && (
+        <span onClick={() => setIsOpen(true)}>
+          {trigger}
+        </span>
+      )}
+      <DialogContent className="sm:max-w-lg" onClick={e => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Custom Types</DialogTitle>
         </DialogHeader>

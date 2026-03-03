@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import type { ArchNode, ArchEdge } from '@/types/chart';
+import type { AnyNode } from '@/types/chart';
 import { NODE_TYPES_CONFIG } from '@/types/chart';
 import { Trash2, Pencil } from 'lucide-react';
 
 interface ContextMenuProps {
-  nodes: ArchNode[];
+  nodes: AnyNode[];
   onDeleteNodes: (ids: string[]) => void;
   onSelectNode: (id: string) => void;
 }
