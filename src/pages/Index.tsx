@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, Trash2, Network, Sun, Moon, ChevronRight, Upload } from 'lucide-react';
 import { toast } from 'sonner';
+import Icon from '@/components/ui/Icon';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -138,7 +139,7 @@ const Index = () => {
       <header className="border-b bg-card">
         <div className="container max-w-5xl flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2.5">
-            <Network className="h-5 w-5 text-primary" />
+            <Icon />
             <h1 className="font-semibold text-lg font-mono tracking-tight">ArchFlow</h1>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleDarkMode}>
