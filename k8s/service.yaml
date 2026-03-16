@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: architecture-studio
+  namespace: architecture-studio
+  labels:
+    app: architecture-studio
+spec:
+  selector:
+    app: architecture-studio
+  ports:
+    - port: 80
+      targetPort: 80

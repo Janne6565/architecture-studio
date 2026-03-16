@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: architecture-studio
+  namespace: architecture-studio
+  labels:
+    app: architecture-studio
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: architecture-studio
+  template:
+    metadata:
+      labels:
+        app: architecture-studio
+    spec:
+      containers:
+        - name: architecture-studio
+          image: ghcr.io/janne6565/architecture-studio:1.0.1
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 50m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
