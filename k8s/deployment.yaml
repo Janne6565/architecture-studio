@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: architecture-studio
-          image: ghcr.io/janne6565/architecture-studio:1.0.1
+          image: ghcr.io/janne6565/architecture-studio:1.0.2
           ports:
             - containerPort: 80
           resources:
