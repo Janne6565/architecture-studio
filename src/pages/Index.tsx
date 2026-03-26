@@ -140,7 +140,7 @@ const Index = () => {
         <div className="container max-w-5xl flex items-center justify-between h-14 px-4">
           <div className="flex items-center gap-2.5">
             <Icon />
-            <h1 className="font-semibold text-lg font-mono tracking-tight">ArchFlow</h1>
+            <h1 className="font-semibold text-lg font-mono tracking-tight">Architecture Studio</h1>
           </div>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={toggleDarkMode}>
             {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
